@@ -1,0 +1,19 @@
+{
+    "name": "example/woo-gib-efatura",
+    "description": "WooCommerce icin GIB e-Arsiv/e-Fatura entegrasyonu.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": "^8.1",
+        "mlevent/fatura": "^0.3.3"
+    },
+    "config": {
+        "platform": {
+            "php": "8.1"
+        },
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

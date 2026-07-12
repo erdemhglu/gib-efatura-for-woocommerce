@@ -1,0 +1,86 @@
+.wgf-metabox .wgf-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	color: #fff;
+	background: #999;
+}
+
+.wgf-metabox .wgf-badge-taslak {
+	background: #b26200;
+}
+
+.wgf-metabox .wgf-badge-imzalandi {
+	background: #2a8a2a;
+}
+
+.wgf-metabox .wgf-badge-hata {
+	background: #c0392b;
+}
+
+.wgf-metabox .wgf-badge-none {
+	background: transparent;
+	color: #aaa;
+}
+
+.wgf-metabox .wgf-actions {
+	margin-top: 8px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+.wgf-metabox .wgf-message {
+	display: none;
+	margin-top: 8px;
+	padding: 6px 8px;
+	border-radius: 3px;
+	font-size: 12px;
+}
+
+.wgf-metabox .wgf-message.wgf-success {
+	background: #edfaef;
+	color: #1e6b1e;
+	border: 1px solid #b7e2ba;
+}
+
+.wgf-metabox .wgf-message.wgf-error {
+	background: #fbeaea;
+	color: #9a2c2c;
+	border: 1px solid #f0b8b8;
+}
+
+.wgf-metabox .wgf-spinner {
+	float: none;
+	vertical-align: middle;
+}
+
+.wgf-settings .wgf-danger {
+	color: #a00;
+	border-color: #a00;
+}
+
+.wp-list-table .wgf-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	color: #fff;
+}
+
+.wp-list-table .wgf-badge-taslak {
+	background: #b26200;
+}
+
+.wp-list-table .wgf-badge-imzalandi {
+	background: #2a8a2a;
+}
+
+.wp-list-table .wgf-badge-silindi {
+	background: #999;
+}
