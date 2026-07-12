@@ -1,8 +1,15 @@
 {
-    "name": "example/woo-gib-efatura",
+    "name": "erdemhglu/woo-gib-efatura",
     "description": "WooCommerce icin GIB e-Arsiv/e-Fatura entegrasyonu.",
     "type": "wordpress-plugin",
+    "homepage": "https://github.com/erdemhglu/woo-gib-efatura",
     "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Erdem Hacisalihoglu",
+            "homepage": "https://github.com/erdemhglu"
+        }
+    ],
     "require": {
         "php": "^8.1",
         "mlevent/fatura": "^0.3.3"

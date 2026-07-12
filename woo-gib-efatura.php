@@ -1,12 +1,13 @@
 <?php
 /**
  * Plugin Name:       WooCommerce GİB e-Fatura
- * Plugin URI:        https://example.com/woo-gib-efatura
+ * Plugin URI:        https://github.com/erdemhglu/woo-gib-efatura
  * Description:       WooCommerce siparişlerinden GİB e-Arşiv portalı üzerinden e-Fatura/e-Arşiv fatura kesme, e-posta ile gönderme, indirme/saklama ve mükerrer fatura engelleme eklentisi. mlevent/fatura kütüphanesini kullanır.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      8.1
- * Author:
+ * Author:            Erdem Hacisalihoglu
+ * Author URI:        https://github.com/erdemhglu
  * Text Domain:       woo-gib-efatura
  * Domain Path:       /languages
  * Requires Plugins:  woocommerce
@@ -20,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
 // ---------------------------------------------------------------------
 // Sabitler
 // ---------------------------------------------------------------------
-define( 'WGF_VERSION', '1.0.0' );
+define( 'WGF_VERSION', '1.1.0' );
 define( 'WGF_FILE', __FILE__ );
 define( 'WGF_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WGF_URL', plugin_dir_url( __FILE__ ) );

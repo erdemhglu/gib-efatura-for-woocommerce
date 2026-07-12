@@ -86,11 +86,11 @@ class WGF_Download_Handler {
 		nocache_headers();
 		header( 'Content-Type: text/html; charset=UTF-8' );
 		header( 'X-Content-Type-Options: nosniff' );
-		// GİB'den gelen belge, betik/nesne çalıştırmayı tamamen engelleyen bir CSP ile gösterilir:
-		// önizleme yalnızca statik bir belge görünümüdür, JS çalışmasına ihtiyaç yoktur. Bu,
-		// GİB yanıtı herhangi bir şekilde bozulsa/manipüle edilse bile wp-admin oturumunda
-		// script çalıştırılamamasını (XSS) garanti eder.
-		header( "Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; img-src data: https:; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none';" );
+		// GİB'den gelen belge, dış/gömülü script çalışmasını engelleyen ama aynı köken (self)
+		// script'lerine (ör. Cloudflare'in e-posta maskesini çözen /cdn-cgi/ script'i) izin veren
+		// bir CSP ile gösterilir. Bu, GİB yanıtı manipüle edilse bile dışarıdan/gömülü script
+		// enjeksiyonuna (XSS) karşı korurken, CDN/güvenlik eklentilerinin sayfayı bozmasını önler.
+		header( "Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; img-src data: https:; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none';" );
 		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSP ile script çalıştırma engellenmiş ham GİB belge görünümü.
 		exit;
 	}

@@ -4,6 +4,8 @@ WooCommerce siparişlerinden [GİB e-Arşiv portalı](https://earsivportal.efatu
 
 Bu eklenti, GİB portalı ile iletişim için [`mlevent/fatura`](https://github.com/mlevent/fatura) PHP kütüphanesini kullanır.
 
+**Geliştirici:** Erdem Hacisalihoglu — [github.com/erdemhglu/woo-gib-efatura](https://github.com/erdemhglu/woo-gib-efatura)
+
 ## Özellikler
 
 - Sipariş ekranından tek tıkla GİB e-Arşiv **taslak fatura** oluşturma (bireysel veya kurumsal/VKN'li).
