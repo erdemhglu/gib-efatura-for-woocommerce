@@ -34,9 +34,9 @@ Bu eklenti, GİB portalı ile iletişim için [`mlevent/fatura`](https://github.
 - PHP 8.1+
 - Composer (kurulum sırasında bir kereliğine gerekir, sonrasında gerekmez)
 
-## Kgib-efatura-for-woocommerce
+## Kurulum
 
-1. `woo-gib-efatura` klasörünü sunucunuzda `wp-content/plugins/` dizinine yükleyin (FTP/SFTP veya doğrudan sunucuda oluşturduysanız zaten oradadır).
+1. `gib-efatura-for-woocommerce` klasörünü sunucunuzda `wp-content/plugins/` dizinine yükleyin (FTP/SFTP veya doğrudan sunucuda oluşturduysanız zaten oradadır).
 2. Sunucuda **SSH ile** eklenti klasörüne girip bağımlılıkları yükleyin (bu adım **zorunludur**, aksi hâlde eklenti "gerekli PHP kütüphaneleri bulunamadı" uyarısı verir ve devre dışı kalır):
 gib-efatura-for-woocommerce
    ```bash
@@ -51,7 +51,7 @@ gib-efatura-for-woocommerce
 
    Bu komut `mlevent/fatura` kütüphanesini ve bağımlılıklarını (`guzzlehttp/guzzle`, `ramsey/uuid`, `kwn/number-to-words`) `vendor/` klasörüne indirir. `vendor/` klasörü oluştuktan sonra eklenti kalıcı olarak kendi kendine ygib-efatura-for-woocommercedaha Composer'a ihtiyaç duyulmaz.
 
-   Sunucuda hiç SSH/terminal erişiminiz yoksa: bu komutu kendi bilgisayarınızda (PHP 8.1+ ile) çalıştırıp oluşan `vendor/` klasörünü eklenti klasörünün içine FTP ile yükleyebilir veya [Releases](https://github.com/erdemhglu/woo-gib-efatura/releases) sayfasından eklentinin vendor dosyası eklenmiş halini indirebilirsiniz. Direkt kuruluma hazırdır.
+   Sunucuda hiç SSH/terminal erişiminiz yoksa: bu komutu kendi bilgisayarınızda (PHP 8.1+ ile) çalıştırıp oluşan `vendor/` klasörünü eklenti klasörünün içine FTP ile yükleyebilir **veya [Releases](https://github.com/erdemhglu/woo-gib-efatura/releases) sayfasından eklentinin vendor dosyası eklenmiş halini indirebilirsiniz. Direkt kuruluma hazırdır.**
 
 3. WordPress admin panelinden **Eklentiler** sayfasından "WooCommerce GİB e-Fatura" eklentisini etkinleştirin.
 4. **GİB e-Fatura > Ayarlar** sayfasından:
