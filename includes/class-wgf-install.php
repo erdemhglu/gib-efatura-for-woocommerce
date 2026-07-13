@@ -35,6 +35,8 @@ class WGF_Install {
 			belge_no VARCHAR(64) NULL,
 			durum VARCHAR(20) NOT NULL DEFAULT 'taslak',
 			fatura_tipi VARCHAR(20) NOT NULL DEFAULT 'bireysel',
+			belge_turu VARCHAR(10) NOT NULL DEFAULT 'satis',
+			iade_kaynak_id BIGINT UNSIGNED NULL,
 			mode VARCHAR(10) NOT NULL DEFAULT 'test',
 			para_birimi VARCHAR(10) NOT NULL DEFAULT 'TRY',
 			tutar DECIMAL(18,2) NOT NULL DEFAULT 0,
@@ -42,8 +44,11 @@ class WGF_Install {
 			alici_vkn_tckn VARCHAR(20) NULL,
 			irsaliye_no VARCHAR(64) NULL,
 			irsaliye_tarihi VARCHAR(20) NULL,
+			fatura_tarihi VARCHAR(20) NULL,
 			dosya_yolu VARCHAR(500) NULL,
 			sms_oid VARCHAR(100) NULL,
+			iptal_talep_tarihi DATETIME NULL,
+			iptal_aciklama VARCHAR(255) NULL,
 			hata_mesaji TEXT NULL,
 			created_by BIGINT UNSIGNED NULL,
 			created_at DATETIME NOT NULL,
@@ -51,7 +56,8 @@ class WGF_Install {
 			PRIMARY KEY  (id),
 			KEY order_id (order_id),
 			KEY durum (durum),
-			KEY uuid (uuid)
+			KEY uuid (uuid),
+			KEY iade_kaynak_id (iade_kaynak_id)
 		) {$charset_collate};";
 
 		dbDelta( $sql );

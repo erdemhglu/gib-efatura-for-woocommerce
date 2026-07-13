@@ -12,8 +12,8 @@ defined( 'ABSPATH' ) || exit;
 class WGF_Crypto {
 
 	private static function key(): string {
-		$secret = ( defined( 'AUTH_KEY' ) && AUTH_KEY ) ? AUTH_KEY : 'woo-gib-efatura';
-		$salt   = ( defined( 'AUTH_SALT' ) && AUTH_SALT ) ? AUTH_SALT : 'woo-gib-efatura-salt';
+		$secret = ( defined( 'AUTH_KEY' ) && AUTH_KEY ) ? AUTH_KEY : 'gib-efatura-for-woocommerce';
+		$salt   = ( defined( 'AUTH_SALT' ) && AUTH_SALT ) ? AUTH_SALT : 'gib-efatura-for-woocommerce-salt';
 		return hash( 'sha256', $secret . $salt, true );
 	}
 

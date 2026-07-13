@@ -34,12 +34,12 @@ class WGF_MyAccount {
 		}
 
 		echo '<section class="wgf-customer-invoice" style="margin-top:20px;">';
-		echo '<h2>' . esc_html__( 'e-Fatura', 'woo-gib-efatura' ) . '</h2>';
-		echo '<p>' . esc_html__( 'Bu siparişe ait e-Faturanızı aşağıdaki bağlantıdan indirebilirsiniz.', 'woo-gib-efatura' ) . '</p>';
+		echo '<h2>' . esc_html__( 'e-Fatura', 'gib-efatura-for-woocommerce' ) . '</h2>';
+		echo '<p>' . esc_html__( 'Bu siparişe ait e-Faturanızı aşağıdaki bağlantıdan indirebilirsiniz.', 'gib-efatura-for-woocommerce' ) . '</p>';
 		printf(
 			'<a class="button" href="%s">%s</a>',
 			esc_url( self::download_link( $invoice ) ),
-			esc_html__( 'Faturayı İndir', 'woo-gib-efatura' )
+			esc_html__( 'Faturayı İndir', 'gib-efatura-for-woocommerce' )
 		);
 		echo '</section>';
 	}
@@ -49,11 +49,11 @@ class WGF_MyAccount {
 		foreach ( $columns as $key => $label ) {
 			$new[ $key ] = $label;
 			if ( 'order-actions' === $key ) {
-				$new['wgf_invoice'] = __( 'Fatura', 'woo-gib-efatura' );
+				$new['wgf_invoice'] = __( 'Fatura', 'gib-efatura-for-woocommerce' );
 			}
 		}
 		if ( ! isset( $new['wgf_invoice'] ) ) {
-			$new['wgf_invoice'] = __( 'Fatura', 'woo-gib-efatura' );
+			$new['wgf_invoice'] = __( 'Fatura', 'gib-efatura-for-woocommerce' );
 		}
 		return $new;
 	}
@@ -73,7 +73,7 @@ class WGF_MyAccount {
 		printf(
 			'<a href="%s">%s</a>',
 			esc_url( self::download_link( $invoice ) ),
-			esc_html__( 'İndir', 'woo-gib-efatura' )
+			esc_html__( 'İndir', 'gib-efatura-for-woocommerce' )
 		);
 	}
 }

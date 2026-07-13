@@ -26,6 +26,25 @@
 	color: #aaa;
 }
 
+.wgf-metabox .wgf-badge-iade {
+	background: #8a2a6b;
+	margin-left: 4px;
+}
+
+.wgf-metabox .wgf-iptal-info {
+	background: #fbeaea;
+	border: 1px solid #f0b8b8;
+	border-radius: 3px;
+	padding: 6px 8px;
+	font-size: 12px;
+}
+
+.wgf-metabox .wgf-iade-items th,
+.wgf-metabox .wgf-iade-items td {
+	padding: 4px 6px;
+	font-size: 12px;
+}
+
 .wgf-metabox .wgf-actions {
 	margin-top: 8px;
 	display: flex;
@@ -83,4 +102,8 @@
 
 .wp-list-table .wgf-badge-silindi {
 	background: #999;
+}
+
+.wp-list-table .wgf-badge-iade {
+	background: #8a2a6b;
 }

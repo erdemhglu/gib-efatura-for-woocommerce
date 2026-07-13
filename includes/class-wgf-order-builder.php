@@ -2,9 +2,11 @@
 defined( 'ABSPATH' ) || exit;
 
 use Mlevent\Fatura\Enums\Currency;
+use Mlevent\Fatura\Enums\InvoiceType;
 use Mlevent\Fatura\Enums\Unit;
 use Mlevent\Fatura\Models\InvoiceModel;
 use Mlevent\Fatura\Models\InvoiceItemModel;
+use Mlevent\Fatura\Models\InvoiceReturnItemModel;
 
 /**
  * WC_Order verisini Mlevent\Fatura InvoiceModel'e dönüştürür.
@@ -33,7 +35,7 @@ class WGF_Order_Builder {
 		$tax_office = self::resolve_field( $order, WGF_Settings::field_map( 'field_map_tax_office' ), '' );
 
 		return [
-			'aliciAdi'        => $order->get_billing_first_name() ?: __( 'Müşteri', 'woo-gib-efatura' ),
+			'aliciAdi'        => $order->get_billing_first_name() ?: __( 'Müşteri', 'gib-efatura-for-woocommerce' ),
 			'aliciSoyadi'     => $order->get_billing_last_name() ?: '-',
 			'aliciUnvan'      => $company,
 			'vknTckn'         => $tax_id ?: '11111111111',
@@ -59,16 +61,19 @@ class WGF_Order_Builder {
 	}
 
 	/**
+	 * @param array{faturaNo:string,tarihi:string,kalemler:array<int,float>}|null $return_info İade faturası oluşturuluyorsa,
+	 *        iadeye konu orijinal faturanın belge no/tarihi ve iade edilecek sipariş kalemi ID => miktar eşleşmesi.
+	 *
 	 * @throws WGF_Exception
 	 */
-	public static function build( \WC_Order $order, array $overrides = [] ): InvoiceModel {
+	public static function build( \WC_Order $order, array $overrides = [], ?array $return_info = null ): InvoiceModel {
 		$data = array_merge( self::get_defaults( $order ), array_filter( $overrides, fn( $v ) => null !== $v && '' !== $v ) );
 
 		$currency = Currency::tryFrom( strtoupper( (string) $data['paraBirimi'] ) ) ?? Currency::TRY;
 		$rate     = (float) ( $overrides['dovizKuru'] ?? $data['dovizKuru'] ?? 0 );
 
 		if ( Currency::TRY !== $currency && $rate <= 0 ) {
-			throw new WGF_Exception( __( 'Sipariş TRY dışında bir para biriminde. Fatura oluşturmak için döviz kurunu girmelisiniz.', 'woo-gib-efatura' ) );
+			throw new WGF_Exception( __( 'Sipariş TRY dışında bir para biriminde. Fatura oluşturmak için döviz kurunu girmelisiniz.', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		$invoice = new InvoiceModel(
@@ -76,6 +81,7 @@ class WGF_Order_Builder {
 			tarih           : (string) $data['faturaTarihi'],
 			paraBirimi      : $currency,
 			dovizKuru       : Currency::TRY === $currency ? 0 : $rate,
+			faturaTipi      : $return_info ? InvoiceType::Iade : InvoiceType::Satis,
 			siparisNumarasi : (string) $order->get_order_number(),
 			siparisTarihi   : $order->get_date_created() ? $order->get_date_created()->date( 'd/m/Y' ) : current_time( 'd/m/Y' ),
 			aliciUnvan      : (string) $data['aliciUnvan'],
@@ -94,26 +100,72 @@ class WGF_Order_Builder {
 			irsaliyeTarihi  : (string) $data['irsaliyeTarihi'],
 		);
 
-		foreach ( self::build_items( $order ) as $item ) {
+		foreach ( self::build_items( $order, $return_info['kalemler'] ?? null ) as $item ) {
 			$invoice->addItem( $item );
 		}
 
 		if ( ! $invoice->getItems() ) {
-			throw new WGF_Exception( __( 'Siparişte faturalandırılacak kalem bulunamadı.', 'woo-gib-efatura' ) );
+			throw new WGF_Exception( $return_info
+				? __( 'İade için seçilen kalemler bulunamadı.', 'gib-efatura-for-woocommerce' )
+				: __( 'Siparişte faturalandırılacak kalem bulunamadı.', 'gib-efatura-for-woocommerce' )
+			);
+		}
+
+		if ( $return_info ) {
+			$invoice->addReturnItem( new InvoiceReturnItemModel(
+				faturaNo        : (string) $return_info['faturaNo'],
+				duzenlenmeTarihi: (string) $return_info['tarihi'],
+			) );
 		}
 
 		return $invoice;
 	}
 
 	/**
+	 * Siparişteki faturalandırılabilir kalemleri, admin ekranında iade seçimi
+	 * yaparken göstermek üzere basit bir listeye döker.
+	 *
+	 * @return array<int,array{name:string,qty:float,unit_price:float,currency:string}>
+	 */
+	public static function get_returnable_items( \WC_Order $order ): array {
+		$items = [];
+		foreach ( $order->get_items( [ 'line_item', 'shipping', 'fee' ] ) as $item_id => $order_item ) {
+			$subtotal = (float) ( $order_item instanceof \WC_Order_Item_Product ? $order_item->get_subtotal() : $order_item->get_total() );
+			if ( 0.0 === round( $subtotal, 2 ) ) {
+				continue;
+			}
+			$qty = $order_item instanceof \WC_Order_Item_Product ? max( 1.0, (float) $order_item->get_quantity() ) : 1.0;
+
+			$items[ $item_id ] = [
+				'name'       => $order_item->get_name() ?: __( 'Ürün', 'gib-efatura-for-woocommerce' ),
+				'qty'        => $qty,
+				'unit_price' => round( $subtotal / $qty, 4 ),
+				'currency'   => $order->get_currency(),
+			];
+		}
+		return $items;
+	}
+
+	/**
+	 * @param array<int,float>|null $item_quantities Sadece belirtilen sipariş kalemi ID => miktar
+	 *        eşleşmesindeki kalemleri (miktar sınırlı olarak) dahil eder; null ise tüm kalemler tam miktarıyla dahil edilir.
+	 *
 	 * @return InvoiceItemModel[]
 	 */
-	private static function build_items( \WC_Order $order ): array {
+	private static function build_items( \WC_Order $order, ?array $item_quantities = null ): array {
 		$items = [];
 		$unit  = self::resolve_unit( (string) WGF_Settings::get( 'default_unit', 'Adet' ) );
 
-		foreach ( $order->get_items( [ 'line_item', 'shipping', 'fee' ] ) as $order_item ) {
-			$item = self::build_item_from_order_item( $order_item, $unit );
+		foreach ( $order->get_items( [ 'line_item', 'shipping', 'fee' ] ) as $item_id => $order_item ) {
+			if ( null !== $item_quantities ) {
+				if ( empty( $item_quantities[ $item_id ] ) || $item_quantities[ $item_id ] <= 0 ) {
+					continue;
+				}
+			}
+
+			$qty_override = null !== $item_quantities ? (float) $item_quantities[ $item_id ] : null;
+
+			$item = self::build_item_from_order_item( $order_item, $unit, $qty_override );
 			if ( $item ) {
 				$items[] = $item;
 			}
@@ -122,14 +174,16 @@ class WGF_Order_Builder {
 		return $items;
 	}
 
-	private static function build_item_from_order_item( \WC_Order_Item $order_item, Unit $default_unit ): ?InvoiceItemModel {
+	private static function build_item_from_order_item( \WC_Order_Item $order_item, Unit $default_unit, ?float $qty_override = null ): ?InvoiceItemModel {
 		$name = $order_item->get_name();
 
 		if ( $order_item instanceof \WC_Order_Item_Product ) {
-			$qty      = max( 1.0, (float) $order_item->get_quantity() );
-			$subtotal = (float) $order_item->get_subtotal();
-			$total    = (float) $order_item->get_total();
-			$tax      = (float) $order_item->get_subtotal_tax();
+			$orig_qty = max( 1.0, (float) $order_item->get_quantity() );
+			$qty      = null !== $qty_override ? min( $qty_override, $orig_qty ) : $orig_qty;
+			$ratio    = $qty / $orig_qty;
+			$subtotal = (float) $order_item->get_subtotal() * $ratio;
+			$total    = (float) $order_item->get_total() * $ratio;
+			$tax      = (float) $order_item->get_subtotal_tax() * $ratio;
 			$unit     = self::product_unit( $order_item->get_product() ) ?? $default_unit;
 		} elseif ( $order_item instanceof \WC_Order_Item_Shipping ) {
 			$qty      = 1.0;
@@ -137,7 +191,7 @@ class WGF_Order_Builder {
 			$total    = $subtotal;
 			$tax      = (float) $order_item->get_total_tax();
 			$unit     = Unit::Adet;
-			$name     = $name ?: __( 'Kargo/Teslimat', 'woo-gib-efatura' );
+			$name     = $name ?: __( 'Kargo/Teslimat', 'gib-efatura-for-woocommerce' );
 		} elseif ( $order_item instanceof \WC_Order_Item_Fee ) {
 			$qty      = 1.0;
 			$subtotal = (float) $order_item->get_total();
@@ -157,7 +211,7 @@ class WGF_Order_Builder {
 		$kdv_rate   = self::nearest_kdv_rate( $subtotal > 0 ? ( $tax / $subtotal * 100 ) : 0.0 );
 
 		$args = [
-			'malHizmet'  => $name ?: __( 'Ürün', 'woo-gib-efatura' ),
+			'malHizmet'  => $name ?: __( 'Ürün', 'gib-efatura-for-woocommerce' ),
 			'miktar'     => $qty,
 			'birimFiyat' => $unit_price,
 			'kdvOrani'   => (float) $kdv_rate,

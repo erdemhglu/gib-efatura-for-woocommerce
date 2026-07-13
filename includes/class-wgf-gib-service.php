@@ -24,8 +24,8 @@ class WGF_Gib_Service {
 		if ( '' === $username || '' === $password ) {
 			throw new WGF_Exception(
 				$test_mode
-					? __( 'Test API kullanıcı bilgileri tanımlı değil. Ayarlar sayfasından "Test Kullanıcısı Al" butonuyla bir test hesabı alabilirsiniz.', 'woo-gib-efatura' )
-					: __( 'GİB canlı API kullanıcı kodu/parola bilgileri tanımlı değil. Lütfen Ayarlar sayfasından girin.', 'woo-gib-efatura' )
+					? __( 'Test API kullanıcı bilgileri tanımlı değil. Ayarlar sayfasından "Test Kullanıcısı Al" butonuyla bir test hesabı alabilirsiniz.', 'gib-efatura-for-woocommerce' )
+					: __( 'GİB canlı API kullanıcı kodu/parola bilgileri tanımlı değil. Lütfen Ayarlar sayfasından girin.', 'gib-efatura-for-woocommerce' )
 			);
 		}
 
@@ -38,14 +38,14 @@ class WGF_Gib_Service {
 			$gib->login( $username, $password );
 		} catch ( FaturaException $e ) {
 			self::log_exception( 'login', $e );
-			throw new WGF_Exception( __( 'GİB portalına giriş yapılamadı. Kullanıcı kodu/parola bilgilerinizi kontrol edin.', 'woo-gib-efatura' ) );
+			throw new WGF_Exception( __( 'GİB portalına giriş yapılamadı. Kullanıcı kodu/parola bilgilerinizi kontrol edin.', 'gib-efatura-for-woocommerce' ) );
 		} catch ( \Throwable $e ) {
 			WGF_Logger::error( 'login genel hata: ' . $e->getMessage() );
-			throw new WGF_Exception( __( 'GİB portalına bağlanılamadı. Lütfen daha sonra tekrar deneyin.', 'woo-gib-efatura' ) );
+			throw new WGF_Exception( __( 'GİB portalına bağlanılamadı. Lütfen daha sonra tekrar deneyin.', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		if ( ! $gib->getToken() ) {
-			throw new WGF_Exception( __( 'GİB portalından oturum anahtarı (token) alınamadı.', 'woo-gib-efatura' ) );
+			throw new WGF_Exception( __( 'GİB portalından oturum anahtarı (token) alınamadı.', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		return $gib;
@@ -72,7 +72,7 @@ class WGF_Gib_Service {
 			return $gib->testMode()->getTestCredentials();
 		} catch ( FaturaException $e ) {
 			self::log_exception( 'fetch_test_credentials', $e );
-			throw new WGF_Exception( __( 'Şu anda GİB test sunucusunda kullanılabilir test hesabı yok, lütfen birkaç dakika sonra tekrar deneyin.', 'woo-gib-efatura' ) );
+			throw new WGF_Exception( __( 'Şu anda GİB test sunucusunda kullanılabilir test hesabı yok, lütfen birkaç dakika sonra tekrar deneyin.', 'gib-efatura-for-woocommerce' ) );
 		}
 	}
 
@@ -104,7 +104,7 @@ class WGF_Gib_Service {
 		try {
 			$oid = $gib->startSmsVerification();
 			if ( ! $oid ) {
-				throw new WGF_Exception( __( 'Portalda kayıtlı bir GSM numarası bulunamadığından SMS gönderilemedi.', 'woo-gib-efatura' ) );
+				throw new WGF_Exception( __( 'Portalda kayıtlı bir GSM numarası bulunamadığından SMS gönderilemedi.', 'gib-efatura-for-woocommerce' ) );
 			}
 			return $oid;
 		} catch ( FaturaException $e ) {
@@ -125,7 +125,7 @@ class WGF_Gib_Service {
 		try {
 			$result = $gib->completeSmsVerification( $code, $oid, [ $uuid ] );
 			if ( ! $result ) {
-				throw new WGF_Exception( __( 'SMS kodu doğrulanamadı. Kodu kontrol edip tekrar deneyin.', 'woo-gib-efatura' ) );
+				throw new WGF_Exception( __( 'SMS kodu doğrulanamadı. Kodu kontrol edip tekrar deneyin.', 'gib-efatura-for-woocommerce' ) );
 			}
 			return true;
 		} catch ( FaturaException $e ) {
@@ -163,7 +163,7 @@ class WGF_Gib_Service {
 		try {
 			$html = $gib->getHtml( $uuid, $signed );
 			if ( ! $html ) {
-				throw new WGF_Exception( __( 'Fatura önizlemesi alınamadı.', 'woo-gib-efatura' ) );
+				throw new WGF_Exception( __( 'Fatura önizlemesi alınamadı.', 'gib-efatura-for-woocommerce' ) );
 			}
 			return $html;
 		} catch ( FaturaException $e ) {
@@ -184,11 +184,33 @@ class WGF_Gib_Service {
 		try {
 			$result = $gib->saveToDisk( $uuid, $dir, $filename );
 			if ( ! $result ) {
-				throw new WGF_Exception( __( 'Fatura dosyası indirilemedi.', 'woo-gib-efatura' ) );
+				throw new WGF_Exception( __( 'Fatura dosyası indirilemedi.', 'gib-efatura-for-woocommerce' ) );
 			}
 			return $result;
 		} catch ( FaturaException $e ) {
 			self::log_exception( 'save_to_disk', $e );
+			throw new WGF_Exception( self::friendly_api_message( $e ) );
+		} finally {
+			self::logout( $gib );
+		}
+	}
+
+	/**
+	 * İmzalanmış (resmi) bir belge için GİB portalına iptal başvurusu gönderir.
+	 * Başvuru; alıcının GİB portalından itiraz etmemesi hâlinde yasal süre sonunda kendiliğinden onaylanır.
+	 *
+	 * @throws WGF_Exception
+	 */
+	public static function cancellation_request( string $uuid, string $explanation ): string {
+		$gib = self::client();
+		try {
+			$result = $gib->cancellationRequest( $uuid, $explanation );
+			if ( ! $result ) {
+				throw new WGF_Exception( __( 'İptal başvurusu oluşturulamadı.', 'gib-efatura-for-woocommerce' ) );
+			}
+			return $result;
+		} catch ( FaturaException $e ) {
+			self::log_exception( 'cancellation_request', $e );
 			throw new WGF_Exception( self::friendly_api_message( $e ) );
 		} finally {
 			self::logout( $gib );
@@ -203,7 +225,7 @@ class WGF_Gib_Service {
 	public static function delete_draft( string $uuid ): bool {
 		$gib = self::client();
 		try {
-			$gib->deleteDraft( [ $uuid ], __( 'WooCommerce eklentisi üzerinden silindi', 'woo-gib-efatura' ) );
+			$gib->deleteDraft( [ $uuid ], __( 'WooCommerce eklentisi üzerinden silindi', 'gib-efatura-for-woocommerce' ) );
 			return true;
 		} catch ( FaturaException $e ) {
 			self::log_exception( 'delete_draft', $e );
@@ -216,7 +238,7 @@ class WGF_Gib_Service {
 	private static function friendly_api_message( FaturaException $e ): string {
 		$message = trim( (string) $e->getMessage() );
 		if ( '' === $message ) {
-			return __( 'GİB portalından beklenmeyen bir yanıt alındı.', 'woo-gib-efatura' );
+			return __( 'GİB portalından beklenmeyen bir yanıt alındı.', 'gib-efatura-for-woocommerce' );
 		}
 		// Kütüphane zaten Türkçe mesajlar döndürür, doğrudan kullanılabilir.
 		return $message;

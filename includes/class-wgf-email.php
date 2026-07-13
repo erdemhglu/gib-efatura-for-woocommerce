@@ -17,8 +17,8 @@ class WGF_Email extends \WC_Email {
 
 	public function __construct() {
 		$this->id             = 'wgf_invoice_email';
-		$this->title          = __( 'GİB e-Fatura', 'woo-gib-efatura' );
-		$this->description    = __( 'Sipariş için GİB e-Faturası imzalandığında (veya "Faturayı Gönder" butonuyla manuel olarak) müşteriye gönderilir.', 'woo-gib-efatura' );
+		$this->title          = __( 'GİB e-Fatura', 'gib-efatura-for-woocommerce' );
+		$this->description    = __( 'Sipariş için GİB e-Faturası imzalandığında (veya "Faturayı Gönder" butonuyla manuel olarak) müşteriye gönderilir.', 'gib-efatura-for-woocommerce' );
 		$this->customer_email = true;
 
 		$this->template_html  = 'emails/customer-invoice.php';
@@ -34,11 +34,11 @@ class WGF_Email extends \WC_Email {
 	}
 
 	public function get_default_subject(): string {
-		return __( '{site_title} - Siparişiniz için e-Faturanız (#{order_number})', 'woo-gib-efatura' );
+		return __( '{site_title} - Siparişiniz için e-Faturanız (#{order_number})', 'gib-efatura-for-woocommerce' );
 	}
 
 	public function get_default_heading(): string {
-		return __( 'Faturanız Hazır', 'woo-gib-efatura' );
+		return __( 'Faturanız Hazır', 'gib-efatura-for-woocommerce' );
 	}
 
 	/**
@@ -51,7 +51,7 @@ class WGF_Email extends \WC_Email {
 		$this->recipient = $order->get_billing_email();
 
 		if ( ! $this->get_recipient() ) {
-			throw new WGF_Exception( __( 'Siparişte müşteri e-posta adresi bulunamadığından fatura gönderilemedi.', 'woo-gib-efatura' ) );
+			throw new WGF_Exception( __( 'Siparişte müşteri e-posta adresi bulunamadığından fatura gönderilemedi.', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		$this->placeholders['{order_date}']   = wc_format_datetime( $order->get_date_created() );
@@ -65,7 +65,7 @@ class WGF_Email extends \WC_Email {
 		$sent = $this->send( $this->get_recipient(), $this->get_subject(), $this->get_content(), $this->get_headers(), $attachments );
 
 		if ( ! $sent ) {
-			throw new WGF_Exception( __( 'E-posta gönderilemedi. Sunucunuzun e-posta gönderim ayarlarını kontrol edin.', 'woo-gib-efatura' ) );
+			throw new WGF_Exception( __( 'E-posta gönderilemedi. Sunucunuzun e-posta gönderim ayarlarını kontrol edin.', 'gib-efatura-for-woocommerce' ) );
 		}
 	}
 
@@ -106,40 +106,40 @@ class WGF_Email extends \WC_Email {
 	public function init_form_fields(): void {
 		$this->form_fields = [
 			'enabled'            => [
-				'title'   => __( 'Etkinleştir/Devre Dışı Bırak', 'woo-gib-efatura' ),
+				'title'   => __( 'Etkinleştir/Devre Dışı Bırak', 'gib-efatura-for-woocommerce' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Bu e-postayı etkinleştir', 'woo-gib-efatura' ),
+				'label'   => __( 'Bu e-postayı etkinleştir', 'gib-efatura-for-woocommerce' ),
 				'default' => 'yes',
 			],
 			'subject'            => [
-				'title'       => __( 'Konu', 'woo-gib-efatura' ),
+				'title'       => __( 'Konu', 'gib-efatura-for-woocommerce' ),
 				'type'        => 'text',
 				'desc_tip'    => true,
-				'description' => sprintf( __( 'Kullanılabilir yer tutucular: %s', 'woo-gib-efatura' ), '<code>{site_title}, {order_date}, {order_number}</code>' ),
+				'description' => sprintf( __( 'Kullanılabilir yer tutucular: %s', 'gib-efatura-for-woocommerce' ), '<code>{site_title}, {order_date}, {order_number}</code>' ),
 				'placeholder' => $this->get_default_subject(),
 				'default'     => '',
 			],
 			'heading'            => [
-				'title'       => __( 'Başlık', 'woo-gib-efatura' ),
+				'title'       => __( 'Başlık', 'gib-efatura-for-woocommerce' ),
 				'type'        => 'text',
 				'desc_tip'    => true,
-				'description' => sprintf( __( 'Kullanılabilir yer tutucular: %s', 'woo-gib-efatura' ), '<code>{site_title}, {order_date}, {order_number}</code>' ),
+				'description' => sprintf( __( 'Kullanılabilir yer tutucular: %s', 'gib-efatura-for-woocommerce' ), '<code>{site_title}, {order_date}, {order_number}</code>' ),
 				'placeholder' => $this->get_default_heading(),
 				'default'     => '',
 			],
 			'additional_content' => [
-				'title'       => __( 'Ek İçerik', 'woo-gib-efatura' ),
-				'description' => __( 'E-posta gövdesinin altına eklenecek isteğe bağlı ek metin.', 'woo-gib-efatura' ),
+				'title'       => __( 'Ek İçerik', 'gib-efatura-for-woocommerce' ),
+				'description' => __( 'E-posta gövdesinin altına eklenecek isteğe bağlı ek metin.', 'gib-efatura-for-woocommerce' ),
 				'css'         => 'width:400px; height: 75px;',
-				'placeholder' => __( 'İlginiz için teşekkür ederiz.', 'woo-gib-efatura' ),
+				'placeholder' => __( 'İlginiz için teşekkür ederiz.', 'gib-efatura-for-woocommerce' ),
 				'type'        => 'textarea',
 				'default'     => '',
 				'desc_tip'    => true,
 			],
 			'email_type'         => [
-				'title'       => __( 'E-posta biçimi', 'woo-gib-efatura' ),
+				'title'       => __( 'E-posta biçimi', 'gib-efatura-for-woocommerce' ),
 				'type'        => 'select',
-				'description' => __( 'Bu e-postanın gönderim biçimini belirler.', 'woo-gib-efatura' ),
+				'description' => __( 'Bu e-postanın gönderim biçimini belirler.', 'gib-efatura-for-woocommerce' ),
 				'default'     => 'html',
 				'class'       => 'email_type',
 				'options'     => $this->get_email_type_options(),

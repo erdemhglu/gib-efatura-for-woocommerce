@@ -16,20 +16,20 @@ class WGF_Download_Handler {
 	}
 
 	public static function require_login(): void {
-		wp_die( esc_html__( 'Faturayı indirmek için giriş yapmalısınız.', 'woo-gib-efatura' ) );
+		wp_die( esc_html__( 'Faturayı indirmek için giriş yapmalısınız.', 'gib-efatura-for-woocommerce' ) );
 	}
 
 	public static function handle_admin_download(): void {
 		$invoice_id = absint( $_GET['invoice_id'] ?? 0 );
 
 		if ( ! current_user_can( WGF_Settings::CAPABILITY ) ) {
-			wp_die( esc_html__( 'Bu işlem için yetkiniz yok.', 'woo-gib-efatura' ) );
+			wp_die( esc_html__( 'Bu işlem için yetkiniz yok.', 'gib-efatura-for-woocommerce' ) );
 		}
 		check_admin_referer( 'wgf_download_' . $invoice_id );
 
 		$row = WGF_Invoice_Repository::find( $invoice_id );
 		if ( ! $row ) {
-			wp_die( esc_html__( 'Fatura kaydı bulunamadı.', 'woo-gib-efatura' ) );
+			wp_die( esc_html__( 'Fatura kaydı bulunamadı.', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		self::stream_file( $row );
@@ -44,17 +44,17 @@ class WGF_Download_Handler {
 		check_admin_referer( 'wgf_customer_download_' . $invoice_id );
 
 		if ( ! WGF_Settings::get( 'customer_download' ) ) {
-			wp_die( esc_html__( 'Fatura indirme özelliği şu anda kapalı.', 'woo-gib-efatura' ) );
+			wp_die( esc_html__( 'Fatura indirme özelliği şu anda kapalı.', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		$row = WGF_Invoice_Repository::find( $invoice_id );
 		if ( ! $row || WGF_Invoice_Repository::STATUS_SIGNED !== $row['durum'] ) {
-			wp_die( esc_html__( 'Fatura bulunamadı.', 'woo-gib-efatura' ) );
+			wp_die( esc_html__( 'Fatura bulunamadı.', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		$order = wc_get_order( (int) $row['order_id'] );
 		if ( ! $order || (int) $order->get_customer_id() !== get_current_user_id() ) {
-			wp_die( esc_html__( 'Bu faturayı görüntüleme yetkiniz yok.', 'woo-gib-efatura' ) );
+			wp_die( esc_html__( 'Bu faturayı görüntüleme yetkiniz yok.', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		self::stream_file( $row );
@@ -67,13 +67,13 @@ class WGF_Download_Handler {
 		$invoice_id = absint( $_GET['invoice_id'] ?? 0 );
 
 		if ( ! current_user_can( WGF_Settings::CAPABILITY ) ) {
-			wp_die( esc_html__( 'Bu işlem için yetkiniz yok.', 'woo-gib-efatura' ) );
+			wp_die( esc_html__( 'Bu işlem için yetkiniz yok.', 'gib-efatura-for-woocommerce' ) );
 		}
 		check_admin_referer( 'wgf_preview_' . $invoice_id );
 
 		$row = WGF_Invoice_Repository::find( $invoice_id );
 		if ( ! $row ) {
-			wp_die( esc_html__( 'Fatura kaydı bulunamadı.', 'woo-gib-efatura' ) );
+			wp_die( esc_html__( 'Fatura kaydı bulunamadı.', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		try {
@@ -97,14 +97,14 @@ class WGF_Download_Handler {
 
 	private static function stream_file( array $row ): void {
 		if ( empty( $row['dosya_yolu'] ) ) {
-			wp_die( esc_html__( 'Bu faturaya ait indirilebilir bir dosya yok.', 'woo-gib-efatura' ) );
+			wp_die( esc_html__( 'Bu faturaya ait indirilebilir bir dosya yok.', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		$upload_dir = realpath( WGF_Install::upload_dir() );
 		$file_path  = realpath( $row['dosya_yolu'] );
 
 		if ( ! $upload_dir || ! $file_path || 0 !== strpos( $file_path, $upload_dir ) || ! is_file( $file_path ) ) {
-			wp_die( esc_html__( 'Fatura dosyası bulunamadı.', 'woo-gib-efatura' ) );
+			wp_die( esc_html__( 'Fatura dosyası bulunamadı.', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		nocache_headers();

@@ -1,10 +1,12 @@
-# WooCommerce GİB e-Fatura
+# GİB e-Fatura for WooCommerce 
 
 WooCommerce siparişlerinden [GİB e-Arşiv portalı](https://earsivportal.efatura.gov.tr) üzerinden e-Fatura/e-Arşiv fatura kesen, faturayı e-posta ile gönderen, sitede saklayan/indirtebilen ve mükerrer fatura oluşturmayı engelleyen bir WordPress eklentisi.
 
 Bu eklenti, GİB portalı ile iletişim için [`mlevent/fatura`](https://github.com/mlevent/fatura) PHP kütüphanesini kullanır.
 
-**Geliştirici:** Erdem Hacisalihoglu — [github.com/erdemhglu/woo-gib-efatura](https://github.com/erdemhglu/woo-gib-efatura)
+> **Not:** Bu, bağımsız/gayriresmî bir üçüncü taraf eklentisidir. **Gelir İdaresi Başkanlığı (GİB)** veya **WooCommerce/Automattic** ile hiçbir resmî bağlantısı, ortaklığı ya da onayı yoktur. "GİB", "e-Fatura", "e-Arşiv" ve "WooCommerce" adları ilgili kurum/şirketlerin kendi marka ve unvanlarıdır.
+
+**Geliştirici:** Erdem Hacisalihoglu — [github.com/erdemhglu/gib-efatura-for-woocommerce](https://github.com/erdemhglu/gib-efatura-for-woocommerce)
 
 ## Özellikler
 
@@ -16,6 +18,8 @@ Bu eklenti, GİB portalı ile iletişim için [`mlevent/fatura`](https://github.
 - Faturayı **müşteriye e-posta ile gönderme** (WooCommerce e-posta sistemine entegre, konu/başlık WooCommerce > Ayarlar > E-postalar altında özelleştirilebilir).
 - İmzalanan faturaların dosyasının **sitede saklanması** ve admin/müşteri tarafından **indirilmesi** (müşteri "Hesabım" sayfasından).
 - **"GİB e-Fatura > Faturalar"** menüsünden tüm oluşturulan faturaların listelenmesi, filtrelenmesi, aranması.
+- **İade faturası**: imzalanmış bir satış faturasına karşı, sipariş kalemlerini (tamamını veya kısmi miktarını) seçerek İade türünde yeni bir GİB faturası oluşturma; orijinal faturanın belge no/tarihi otomatik referans alınır.
+- **İptal başvurusu**: imzalanmış (resmi) bir fatura için GİB portalına doğrudan iptal başvurusu gönderme (alıcı yasal süre içinde itiraz etmezse kendiliğinden onaylanır).
 - Fatura **açıklama/not** alanı için Ayarlar sayfasından varsayılan şablon (yer tutuculu).
 - Aynı siparişe **ikinci kez fatura oluşturulması engellenir**, denenirse anlaşılır bir hata mesajı gösterilir.
 - **Test API / Canlı API** arasında ayarlardan tek tıkla geçiş, test kullanıcısı otomatik alma.
@@ -28,11 +32,11 @@ Bu eklenti, GİB portalı ile iletişim için [`mlevent/fatura`](https://github.
 - PHP 8.1+
 - Composer (kurulum sırasında bir kereliğine gerekir, sonrasında gerekmez)
 
-## Kurulum
+## Kgib-efatura-for-woocommerce
 
 1. `woo-gib-efatura` klasörünü sunucunuzda `wp-content/plugins/` dizinine yükleyin (FTP/SFTP veya doğrudan sunucuda oluşturduysanız zaten oradadır).
 2. Sunucuda **SSH ile** eklenti klasörüne girip bağımlılıkları yükleyin (bu adım **zorunludur**, aksi hâlde eklenti "gerekli PHP kütüphaneleri bulunamadı" uyarısı verir ve devre dışı kalır):
-
+gib-efatura-for-woocommerce
    ```bash
    cd wp-content/plugins/woo-gib-efatura
 
@@ -43,7 +47,7 @@ Bu eklenti, GİB portalı ile iletişim için [`mlevent/fatura`](https://github.
    composer install --no-dev
    ```
 
-   Bu komut `mlevent/fatura` kütüphanesini ve bağımlılıklarını (`guzzlehttp/guzzle`, `ramsey/uuid`, `kwn/number-to-words`) `vendor/` klasörüne indirir. `vendor/` klasörü oluştuktan sonra eklenti kalıcı olarak kendi kendine yeterlidir, bir daha Composer'a ihtiyaç duyulmaz.
+   Bu komut `mlevent/fatura` kütüphanesini ve bağımlılıklarını (`guzzlehttp/guzzle`, `ramsey/uuid`, `kwn/number-to-words`) `vendor/` klasörüne indirir. `vendor/` klasörü oluştuktan sonra eklenti kalıcı olarak kendi kendine ygib-efatura-for-woocommercedaha Composer'a ihtiyaç duyulmaz.
 
    Sunucuda hiç SSH/terminal erişiminiz yoksa: bu komutu kendi bilgisayarınızda (PHP 8.1+ ile) çalıştırıp oluşan `vendor/` klasörünü eklenti klasörünün içine FTP ile yükleyebilir veya [Releases](https://github.com/erdemhglu/woo-gib-efatura/releases) sayfasından eklentinin vendor dosyası eklenmiş halini indirebilirsiniz. Direkt kuruluma hazırdır.
 
@@ -66,12 +70,17 @@ Bu eklenti, GİB portalı ile iletişim için [`mlevent/fatura`](https://github.
 5. Canlı modda: **"SMS ile İmzala"** butonuna basın, GİB hesabınıza kayıtlı telefona gelen kodu girip **"Doğrula"** deyin. Fatura resmi hâle gelir, dosyası otomatik indirilip saklanır ve (ayarlarda açıksa) müşteriye otomatik e-posta gider.
 6. Test modda: fatura taslak olarak kalır (resmi geçerliliği yoktur), akışı test etmek için kullanılır; "Taslağı Sil" ile temizlenip tekrar denenebilir.
 7. Tüm faturaları görmek için **GİB e-Fatura > Faturalar** menüsüne gidin.
+8. İmzalanmış bir faturada hata fark ederseniz veya iade işlemi yapmanız gerekirse:
+   - **"İade Faturası Oluştur"** ile açılan tablodan iade edilecek kalemleri (tam veya kısmi miktarla) işaretleyip **"İade Faturasını Oluştur"** deyin. Oluşan iade taslağı, orijinal faturanın hemen altında listelenir ve aynı SMS ile imzalama/e-posta akışından geçer.
+   - **"İptal Başvurusu Yap"** ile bir gerekçe girip GİB portalına doğrudan iptal başvurusu gönderebilirsiniz; başvuru gönderildikten sonra tarih ve açıklama fatura kutusunda görüntülenir.
 
 ## Önemli Notlar
 
 - GİB e-Arşiv'de **taslak oluşturma** ile **imzalama** iki ayrı adımdır; bir fatura yalnızca imzalandıktan sonra resmi/yasal geçerlilik kazanır.
 - SMS ile imzalama **test hesaplarında çalışmaz** (GİB kısıtlaması); bu nedenle test modunda oluşturulan faturalar taslak olarak kalır ve sonsuza dek imzalanamaz — bu beklenen bir durumdur.
-- İmzalanmış (resmi) bir fatura, eklenti üzerinden **silinemez ve değiştirilemez** — irsaliye bilgisi eklemek dahil hiçbir alanı güncellenemez. Mevzuat gereği düzeltme ancak GİB portalından "İptal Talebi" veya bir iade faturası ile yapılabilir. Bu akış şu an eklentiye entegre değildir, GİB portalından elle yürütülmelidir.
+- İmzalanmış (resmi) bir fatura, eklenti üzerinden **silinemez ve değiştirilemez** — irsaliye bilgisi eklemek dahil hiçbir alanı güncellenemez. Mevzuat gereği düzeltme ancak GİB portalına "İptal Talebi" göndererek veya bir iade faturası oluşturarak yapılabilir; her ikisi de fatura kutusundaki butonlarla doğrudan eklentiden yapılabilir (bkz. Kullanım, adım 8).
+- İptal başvurusu, faturayı **anında iptal etmez** — yalnızca GİB'e başvuruyu iletir; alıcı yasal süre içinde itiraz etmezse başvuru kendiliğinden onaylanır. Nihai onay/itiraz durumunu takip etmek için GİB portalına bakmanız gerekir.
+- İade faturası oluştururken kalem başına seçilebilecek azami miktar, sipariş kalemindeki **orijinal miktardır**; eklenti aynı kaleme karşı daha önce oluşturulmuş kısmi iadeleri düşerek bir "kalan miktar" hesabı yapmaz — birden fazla kısmi iade oluşturuyorsanız toplam miktarı kendiniz takip edin.
 - **İrsaliye - fatura sırası:** VUK Madde 231 gereği standart akış, mal sevk edilirken irsaliye düzenlenmesi ve faturanın irsaliye tarihinden **en geç 7 gün içinde** kesilmesidir. Eklenti irsaliyeyi kendisi oluşturmaz (bu ayrı bir süreçtir — matbu irsaliye defteri veya varsa e-İrsaliye sisteminiz); yalnızca zaten var olan irsaliyenin no/tarih bilgisini faturaya referans olarak işler.
 - "İrsaliye Oluştur" (taslağa sonradan ekleme) yalnızca **taslak** durumundaki faturalarda çalışır; imzalanmış bir faturada bu seçenek hiç görünmez, çünkü GİB imzalı belgede değişikliğe izin vermez.
 - Fatura dosyaları `wp-content/uploads/wgf-faturalar/` klasöründe saklanır; bu klasör `.htaccess` ile doğrudan tarayıcı erişimine kapatılmıştır, indirme yalnızca eklenti üzerinden (yetki/nonce kontrolü ile) yapılabilir.
@@ -90,8 +99,8 @@ Bu eklenti, GİB portalı ile iletişim için [`mlevent/fatura`](https://github.
 ```bash
 tail -n 60 wp-content/uploads/wc-logs/fatal-errors-*.log
 ```
-veya `wp-content/debug.log` (WP_DEBUG_LOG açıksa). Fatal error mesajını paylaşarak destek isteyebilirsiniz.
-
+gib-efatura-for-woocommercet/debug.log` (WP_DEBUG_LOG açıksa). Fatal error mesajını paylaşarak destek isteyebilirsiniz.
+gib-efatura-for-woocommerce
 **Bir buton tıklanınca hiçbir şey olmuyor** → Sayfayı sert yenileyin (Ctrl+F5). Tarayıcıda F12 > Console'da kırmızı bir JS hatası olup olmadığına bakın; genelde `admin.js` dosyasının o sayfada yüklenmemesinden kaynaklanır.
 
 ## Dosya Yapısı
@@ -106,3 +115,7 @@ woo-gib-efatura/
 ├── templates/emails/           WooCommerce e-posta şablonları
 └── assets/                     JS/CSS
 ```
+
+## Lisans
+
+Bu proje [GNU General Public License v3.0 (GPL-3.0)](LICENSE) ile lisanslanmıştır. Ayrıntılar için depodaki [`LICENSE`](LICENSE) dosyasına bakın.

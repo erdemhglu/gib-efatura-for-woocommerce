@@ -17,7 +17,7 @@ do_action( 'woocommerce_email_header', $email_heading, $email ); // phpcs:ignore
 	<?php
 	printf(
 		/* translators: 1: müşteri adı 2: sipariş numarası */
-		esc_html__( 'Merhaba %1$s, %2$s numaralı siparişiniz için düzenlenen e-Fatura ekte yer almaktadır.', 'woo-gib-efatura' ),
+		esc_html__( 'Merhaba %1$s, %2$s numaralı siparişiniz için düzenlenen e-Fatura ekte yer almaktadır.', 'gib-efatura-for-woocommerce' ),
 		esc_html( $order->get_billing_first_name() ),
 		esc_html( $order->get_order_number() )
 	);
@@ -26,15 +26,15 @@ do_action( 'woocommerce_email_header', $email_heading, $email ); // phpcs:ignore
 
 <table cellspacing="0" cellpadding="6" style="width:100%;border:1px solid #e5e5e5;margin:12px 0;">
 	<tr>
-		<td><strong><?php esc_html_e( 'Belge No', 'woo-gib-efatura' ); ?></strong></td>
+		<td><strong><?php esc_html_e( 'Belge No', 'gib-efatura-for-woocommerce' ); ?></strong></td>
 		<td><?php echo esc_html( $invoice['belge_no'] ?? '-' ); ?></td>
 	</tr>
 	<tr>
-		<td><strong><?php esc_html_e( 'Tutar', 'woo-gib-efatura' ); ?></strong></td>
+		<td><strong><?php esc_html_e( 'Tutar', 'gib-efatura-for-woocommerce' ); ?></strong></td>
 		<td><?php echo esc_html( number_format_i18n( (float) ( $invoice['tutar'] ?? 0 ), 2 ) . ' ' . ( $invoice['para_birimi'] ?? '' ) ); ?></td>
 	</tr>
 	<tr>
-		<td><strong><?php esc_html_e( 'Sipariş No', 'woo-gib-efatura' ); ?></strong></td>
+		<td><strong><?php esc_html_e( 'Sipariş No', 'gib-efatura-for-woocommerce' ); ?></strong></td>
 		<td><?php echo esc_html( $order->get_order_number() ); ?></td>
 	</tr>
 </table>

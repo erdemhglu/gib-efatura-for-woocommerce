@@ -18,13 +18,16 @@ class WGF_Invoice_Repository {
 		return (bool) self::find_active_by_order( $order_id );
 	}
 
+	/**
+	 * Siparişin asıl satış faturasını döndürür (iade faturaları hariç).
+	 */
 	public static function find_active_by_order( int $order_id ): ?array {
 		global $wpdb;
 		$table = $wpdb->prefix . WGF_TABLE;
 
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM {$table} WHERE order_id = %d AND durum IN (%s, %s) ORDER BY id DESC LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT * FROM {$table} WHERE order_id = %d AND belge_turu = 'satis' AND durum IN (%s, %s) ORDER BY id DESC LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$order_id,
 				self::STATUS_DRAFT,
 				self::STATUS_SIGNED
@@ -33,6 +36,35 @@ class WGF_Invoice_Repository {
 		);
 
 		return $row ?: null;
+	}
+
+	/**
+	 * Belirtilen (asıl) faturaya karşı oluşturulmuş, silinmemiş iade faturalarını döndürür.
+	 */
+	public static function find_returns_by_source( int $source_invoice_id ): array {
+		global $wpdb;
+		$table = $wpdb->prefix . WGF_TABLE;
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE iade_kaynak_id = %d AND durum != %s ORDER BY id ASC", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$source_invoice_id,
+				self::STATUS_DELETED
+			),
+			ARRAY_A
+		);
+
+		return $rows ?: [];
+	}
+
+	/**
+	 * İmzalanmış bir fatura için GİB'e iptal başvurusu gönderildiğini kaydeder.
+	 */
+	public static function mark_cancellation_requested( int $id, string $explanation ): void {
+		self::update( $id, [
+			'iptal_talep_tarihi' => current_time( 'mysql' ),
+			'iptal_aciklama'     => $explanation,
+		] );
 	}
 
 	public static function find( int $id ): ?array {
@@ -60,6 +92,7 @@ class WGF_Invoice_Repository {
 			array_merge(
 				[
 					'durum'      => self::STATUS_DRAFT,
+					'belge_turu' => 'satis',
 					'created_at' => $now,
 					'updated_at' => $now,
 					'created_by' => get_current_user_id(),

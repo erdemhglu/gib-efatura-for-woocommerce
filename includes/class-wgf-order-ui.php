@@ -26,7 +26,7 @@ class WGF_Order_UI {
 
 		add_meta_box(
 			'wgf-invoice-box',
-			__( 'GİB e-Fatura', 'woo-gib-efatura' ),
+			__( 'GİB e-Fatura', 'gib-efatura-for-woocommerce' ),
 			[ __CLASS__, 'render_meta_box' ],
 			$screen,
 			'side',
@@ -40,8 +40,10 @@ class WGF_Order_UI {
 			return;
 		}
 
-		$invoice = WGF_Invoice_Repository::find_active_by_order( $order->get_id() );
-		$defaults = $invoice ? [] : WGF_Order_Builder::get_defaults( $order );
+		$invoice        = WGF_Invoice_Repository::find_active_by_order( $order->get_id() );
+		$defaults       = $invoice ? [] : WGF_Order_Builder::get_defaults( $order );
+		$returns        = $invoice ? WGF_Invoice_Repository::find_returns_by_source( $invoice['id'] ) : [];
+		$returnable     = $invoice && WGF_Invoice_Repository::STATUS_SIGNED === $invoice['durum'] ? WGF_Order_Builder::get_returnable_items( $order ) : [];
 
 		include WGF_PATH . 'includes/views/order-metabox.php';
 	}
@@ -65,11 +67,14 @@ class WGF_Order_UI {
 			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 			'nonce'   => wp_create_nonce( 'wgf_nonce' ),
 			'i18n'    => [
-				'confirmDelete' => __( 'Taslak fatura GİB portalından silinecek. Devam edilsin mi?', 'woo-gib-efatura' ),
-				'enterSmsCode'  => __( 'Telefonunuza gelen SMS kodunu girin:', 'woo-gib-efatura' ),
-				'genericError'  => __( 'Bir hata oluştu, lütfen tekrar deneyin.', 'woo-gib-efatura' ),
-				'currencyRequired' => __( 'Sipariş TRY dışında bir para biriminde, lütfen döviz kurunu girin.', 'woo-gib-efatura' ),
-				'irsaliyeRequired' => __( 'İrsaliye numarası boş olamaz.', 'woo-gib-efatura' ),
+				'confirmDelete' => __( 'Taslak fatura GİB portalından silinecek. Devam edilsin mi?', 'gib-efatura-for-woocommerce' ),
+				'enterSmsCode'  => __( 'Telefonunuza gelen SMS kodunu girin:', 'gib-efatura-for-woocommerce' ),
+				'genericError'  => __( 'Bir hata oluştu, lütfen tekrar deneyin.', 'gib-efatura-for-woocommerce' ),
+				'currencyRequired' => __( 'Sipariş TRY dışında bir para biriminde, lütfen döviz kurunu girin.', 'gib-efatura-for-woocommerce' ),
+				'irsaliyeRequired' => __( 'İrsaliye numarası boş olamaz.', 'gib-efatura-for-woocommerce' ),
+				'explanationRequired' => __( 'İptal başvurusu için bir açıklama girin.', 'gib-efatura-for-woocommerce' ),
+				'returnItemsRequired' => __( 'İade edilecek en az bir kalem seçip miktar girin.', 'gib-efatura-for-woocommerce' ),
+				'confirmCancellation' => __( 'İptal başvurusu GİB portalına gönderilecek. Devam edilsin mi?', 'gib-efatura-for-woocommerce' ),
 			],
 		] );
 	}
@@ -79,11 +84,11 @@ class WGF_Order_UI {
 		foreach ( $columns as $key => $label ) {
 			$new[ $key ] = $label;
 			if ( 'order_status' === $key ) {
-				$new['wgf_invoice'] = __( 'GİB Fatura', 'woo-gib-efatura' );
+				$new['wgf_invoice'] = __( 'GİB Fatura', 'gib-efatura-for-woocommerce' );
 			}
 		}
 		if ( ! isset( $new['wgf_invoice'] ) ) {
-			$new['wgf_invoice'] = __( 'GİB Fatura', 'woo-gib-efatura' );
+			$new['wgf_invoice'] = __( 'GİB Fatura', 'gib-efatura-for-woocommerce' );
 		}
 		return $new;
 	}
@@ -107,14 +112,14 @@ class WGF_Order_UI {
 			return;
 		}
 		$label = WGF_Invoice_Repository::STATUS_SIGNED === $invoice['durum']
-			? __( 'İmzalandı', 'woo-gib-efatura' )
-			: __( 'Taslak', 'woo-gib-efatura' );
+			? __( 'İmzalandı', 'gib-efatura-for-woocommerce' )
+			: __( 'Taslak', 'gib-efatura-for-woocommerce' );
 
 		printf(
 			'<span class="wgf-badge wgf-badge-%1$s">%2$s</span><br /><small>%3$s</small>',
 			esc_attr( $invoice['durum'] ),
 			esc_html( $label ),
-			esc_html( 'test' === $invoice['mode'] ? __( 'Test', 'woo-gib-efatura' ) : __( 'Canlı', 'woo-gib-efatura' ) )
+			esc_html( 'test' === $invoice['mode'] ? __( 'Test', 'gib-efatura-for-woocommerce' ) : __( 'Canlı', 'gib-efatura-for-woocommerce' ) )
 		);
 	}
 }

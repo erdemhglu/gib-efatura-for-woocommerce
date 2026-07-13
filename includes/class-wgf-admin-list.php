@@ -31,10 +31,10 @@ class WGF_Admin_List extends \WP_List_Table {
 		$table->prepare_items();
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'GİB e-Fatura Kayıtları', 'woo-gib-efatura' ); ?></h1>
+			<h1><?php esc_html_e( 'GİB e-Fatura Kayıtları', 'gib-efatura-for-woocommerce' ); ?></h1>
 			<form method="get">
 				<input type="hidden" name="page" value="wgf-invoices" />
-				<?php $table->search_box( __( 'Ara', 'woo-gib-efatura' ), 'wgf-search' ); ?>
+				<?php $table->search_box( __( 'Ara', 'gib-efatura-for-woocommerce' ), 'wgf-search' ); ?>
 				<?php $table->views_list(); ?>
 				<?php $table->display(); ?>
 			</form>
@@ -50,10 +50,10 @@ class WGF_Admin_List extends \WP_List_Table {
 		$base    = remove_query_arg( 'durum' );
 
 		$statuses = [
-			''                                    => __( 'Tümü', 'woo-gib-efatura' ),
-			WGF_Invoice_Repository::STATUS_DRAFT  => __( 'Taslak', 'woo-gib-efatura' ),
-			WGF_Invoice_Repository::STATUS_SIGNED => __( 'İmzalandı', 'woo-gib-efatura' ),
-			WGF_Invoice_Repository::STATUS_DELETED => __( 'Silindi', 'woo-gib-efatura' ),
+			''                                    => __( 'Tümü', 'gib-efatura-for-woocommerce' ),
+			WGF_Invoice_Repository::STATUS_DRAFT  => __( 'Taslak', 'gib-efatura-for-woocommerce' ),
+			WGF_Invoice_Repository::STATUS_SIGNED => __( 'İmzalandı', 'gib-efatura-for-woocommerce' ),
+			WGF_Invoice_Repository::STATUS_DELETED => __( 'Silindi', 'gib-efatura-for-woocommerce' ),
 		];
 
 		$links = [];
@@ -68,15 +68,16 @@ class WGF_Admin_List extends \WP_List_Table {
 
 	public function get_columns(): array {
 		return [
-			'order_id'    => __( 'Sipariş', 'woo-gib-efatura' ),
-			'alici_ad'    => __( 'Müşteri', 'woo-gib-efatura' ),
-			'fatura_tipi' => __( 'Tip', 'woo-gib-efatura' ),
-			'belge_no'    => __( 'Belge No', 'woo-gib-efatura' ),
-			'tutar'       => __( 'Tutar', 'woo-gib-efatura' ),
-			'durum'       => __( 'Durum', 'woo-gib-efatura' ),
-			'mode'        => __( 'Ortam', 'woo-gib-efatura' ),
-			'created_at'  => __( 'Tarih', 'woo-gib-efatura' ),
-			'actions'     => __( 'İşlemler', 'woo-gib-efatura' ),
+			'order_id'    => __( 'Sipariş', 'gib-efatura-for-woocommerce' ),
+			'alici_ad'    => __( 'Müşteri', 'gib-efatura-for-woocommerce' ),
+			'fatura_tipi' => __( 'Tip', 'gib-efatura-for-woocommerce' ),
+			'belge_turu'  => __( 'Belge Türü', 'gib-efatura-for-woocommerce' ),
+			'belge_no'    => __( 'Belge No', 'gib-efatura-for-woocommerce' ),
+			'tutar'       => __( 'Tutar', 'gib-efatura-for-woocommerce' ),
+			'durum'       => __( 'Durum', 'gib-efatura-for-woocommerce' ),
+			'mode'        => __( 'Ortam', 'gib-efatura-for-woocommerce' ),
+			'created_at'  => __( 'Tarih', 'gib-efatura-for-woocommerce' ),
+			'actions'     => __( 'İşlemler', 'gib-efatura-for-woocommerce' ),
 		];
 	}
 
@@ -121,15 +122,21 @@ class WGF_Admin_List extends \WP_List_Table {
 	}
 
 	public function column_fatura_tipi( array $item ): string {
-		return esc_html( 'kurumsal' === $item['fatura_tipi'] ? __( 'Kurumsal', 'woo-gib-efatura' ) : __( 'Bireysel', 'woo-gib-efatura' ) );
+		return esc_html( 'kurumsal' === $item['fatura_tipi'] ? __( 'Kurumsal', 'gib-efatura-for-woocommerce' ) : __( 'Bireysel', 'gib-efatura-for-woocommerce' ) );
+	}
+
+	public function column_belge_turu( array $item ): string {
+		return 'iade' === ( $item['belge_turu'] ?? 'satis' )
+			? '<span class="wgf-badge wgf-badge-iade">' . esc_html__( 'İade', 'gib-efatura-for-woocommerce' ) . '</span>'
+			: esc_html__( 'Satış', 'gib-efatura-for-woocommerce' );
 	}
 
 	public function column_durum( array $item ): string {
 		$labels = [
-			WGF_Invoice_Repository::STATUS_DRAFT   => __( 'Taslak', 'woo-gib-efatura' ),
-			WGF_Invoice_Repository::STATUS_SIGNED  => __( 'İmzalandı', 'woo-gib-efatura' ),
-			WGF_Invoice_Repository::STATUS_ERROR   => __( 'Hata', 'woo-gib-efatura' ),
-			WGF_Invoice_Repository::STATUS_DELETED => __( 'Silindi', 'woo-gib-efatura' ),
+			WGF_Invoice_Repository::STATUS_DRAFT   => __( 'Taslak', 'gib-efatura-for-woocommerce' ),
+			WGF_Invoice_Repository::STATUS_SIGNED  => __( 'İmzalandı', 'gib-efatura-for-woocommerce' ),
+			WGF_Invoice_Repository::STATUS_ERROR   => __( 'Hata', 'gib-efatura-for-woocommerce' ),
+			WGF_Invoice_Repository::STATUS_DELETED => __( 'Silindi', 'gib-efatura-for-woocommerce' ),
 		];
 		return sprintf(
 			'<span class="wgf-badge wgf-badge-%1$s">%2$s</span>',
@@ -139,7 +146,7 @@ class WGF_Admin_List extends \WP_List_Table {
 	}
 
 	public function column_mode( array $item ): string {
-		return esc_html( 'test' === $item['mode'] ? __( 'Test', 'woo-gib-efatura' ) : __( 'Canlı', 'woo-gib-efatura' ) );
+		return esc_html( 'test' === $item['mode'] ? __( 'Test', 'gib-efatura-for-woocommerce' ) : __( 'Canlı', 'gib-efatura-for-woocommerce' ) );
 	}
 
 	public function column_created_at( array $item ): string {
@@ -153,7 +160,7 @@ class WGF_Admin_List extends \WP_List_Table {
 			$links[] = sprintf(
 				'<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
 				esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wgf_preview_invoice&invoice_id=' . $item['id'] ), 'wgf_preview_' . $item['id'] ) ),
-				esc_html__( 'Görüntüle', 'woo-gib-efatura' )
+				esc_html__( 'Görüntüle', 'gib-efatura-for-woocommerce' )
 			);
 		}
 
@@ -161,13 +168,13 @@ class WGF_Admin_List extends \WP_List_Table {
 			$links[] = sprintf(
 				'<a href="%s">%s</a>',
 				esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wgf_download_invoice&invoice_id=' . $item['id'] ), 'wgf_download_' . $item['id'] ) ),
-				esc_html__( 'İndir', 'woo-gib-efatura' )
+				esc_html__( 'İndir', 'gib-efatura-for-woocommerce' )
 			);
 		}
 
 		$order = wc_get_order( (int) $item['order_id'] );
 		if ( $order ) {
-			$links[] = sprintf( '<a href="%s">%s</a>', esc_url( $order->get_edit_order_url() ), esc_html__( 'Siparişi Görüntüle', 'woo-gib-efatura' ) );
+			$links[] = sprintf( '<a href="%s">%s</a>', esc_url( $order->get_edit_order_url() ), esc_html__( 'Siparişi Görüntüle', 'gib-efatura-for-woocommerce' ) );
 		}
 
 		return implode( ' | ', $links );

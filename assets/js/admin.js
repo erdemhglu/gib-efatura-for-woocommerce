@@ -229,6 +229,93 @@
 	});
 
 	// -------------------------------------------------------------
+	// İptal başvurusu / iade faturası kutularını aç/kapa
+	// -------------------------------------------------------------
+	$(document).on('click', '.wgf-btn-toggle', function () {
+		var target = $(this).data('toggle');
+		$(this).closest('.wgf-invoice-block').find('.' + target).slideToggle();
+	});
+
+	// -------------------------------------------------------------
+	// İptal başvurusu gönder
+	// -------------------------------------------------------------
+	$(document).on('click', '.wgf-btn[data-action="cancellation_request"]', function () {
+		var $box = $(this).closest('.wgf-metabox');
+		var $block = $(this).closest('.wgf-invoice-block');
+		var invoiceId = $block.data('invoice-id');
+		var explanation = $block.find('.wgf-iptal-aciklama').val();
+
+		if (!explanation) {
+			showMessage($box, WGF.i18n.explanationRequired, true);
+			return;
+		}
+		if (!window.confirm(WGF.i18n.confirmCancellation)) {
+			return;
+		}
+
+		toggleSpinner($box, true);
+		ajax('wgf_cancellation_request', { invoice_id: invoiceId, explanation: explanation })
+			.done(function (response) {
+				toggleSpinner($box, false);
+				if (response.success) {
+					showMessage($box, response.data.message, false);
+					window.location.reload();
+				} else {
+					showMessage($box, (response.data && response.data.message) || WGF.i18n.genericError, true);
+				}
+			})
+			.fail(function () {
+				toggleSpinner($box, false);
+				showMessage($box, WGF.i18n.genericError, true);
+			});
+	});
+
+	// -------------------------------------------------------------
+	// İade faturası oluştur
+	// -------------------------------------------------------------
+	$(document).on('click', '.wgf-btn[data-action="create_return_invoice"]', function () {
+		var $box = $(this).closest('.wgf-metabox');
+		var $block = $(this).closest('.wgf-invoice-block');
+		var invoiceId = $block.data('invoice-id');
+
+		var kalemler = {};
+		$block.find('.wgf-iade-qty').each(function () {
+			var qty = parseFloat($(this).val());
+			if (qty > 0) {
+				kalemler[$(this).data('item-id')] = qty;
+			}
+		});
+
+		if ($.isEmptyObject(kalemler)) {
+			showMessage($box, WGF.i18n.returnItemsRequired, true);
+			return;
+		}
+
+		var data = {
+			invoice_id: invoiceId,
+			faturaTarihi: $block.find('.wgf-iade-tarih').val(),
+			not: $block.find('.wgf-iade-not').val(),
+			kalemler: kalemler
+		};
+
+		toggleSpinner($box, true);
+		ajax('wgf_create_return_invoice', data)
+			.done(function (response) {
+				toggleSpinner($box, false);
+				if (response.success) {
+					showMessage($box, response.data.message, false);
+					window.location.reload();
+				} else {
+					showMessage($box, (response.data && response.data.message) || WGF.i18n.genericError, true);
+				}
+			})
+			.fail(function () {
+				toggleSpinner($box, false);
+				showMessage($box, WGF.i18n.genericError, true);
+			});
+	});
+
+	// -------------------------------------------------------------
 	// Ayarlar sayfası: test kullanıcısı al
 	// -------------------------------------------------------------
 	$(document).on('click', '#wgf_fetch_test_creds', function () {

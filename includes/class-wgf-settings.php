@@ -81,8 +81,8 @@ class WGF_Settings {
 
 	public static function register_menu(): void {
 		self::$page_hooks[] = add_menu_page(
-			__( 'GİB e-Fatura', 'woo-gib-efatura' ),
-			__( 'GİB e-Fatura', 'woo-gib-efatura' ),
+			__( 'GİB e-Fatura', 'gib-efatura-for-woocommerce' ),
+			__( 'GİB e-Fatura', 'gib-efatura-for-woocommerce' ),
 			self::CAPABILITY,
 			'wgf-invoices',
 			[ 'WGF_Admin_List', 'render' ],
@@ -92,8 +92,8 @@ class WGF_Settings {
 
 		self::$page_hooks[] = add_submenu_page(
 			'wgf-invoices',
-			__( 'Faturalar', 'woo-gib-efatura' ),
-			__( 'Faturalar', 'woo-gib-efatura' ),
+			__( 'Faturalar', 'gib-efatura-for-woocommerce' ),
+			__( 'Faturalar', 'gib-efatura-for-woocommerce' ),
 			self::CAPABILITY,
 			'wgf-invoices',
 			[ 'WGF_Admin_List', 'render' ]
@@ -101,8 +101,8 @@ class WGF_Settings {
 
 		self::$page_hooks[] = add_submenu_page(
 			'wgf-invoices',
-			__( 'GİB e-Fatura Ayarları', 'woo-gib-efatura' ),
-			__( 'Ayarlar', 'woo-gib-efatura' ),
+			__( 'GİB e-Fatura Ayarları', 'gib-efatura-for-woocommerce' ),
+			__( 'Ayarlar', 'gib-efatura-for-woocommerce' ),
 			self::CAPABILITY,
 			'wgf-settings',
 			[ __CLASS__, 'render_page' ]
@@ -119,16 +119,16 @@ class WGF_Settings {
 			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 			'nonce'   => wp_create_nonce( 'wgf_nonce' ),
 			'i18n'    => [
-				'confirmReset'      => __( 'Eklenti tüm ayarları ve fatura kayıtlarını sıfırlayacak. Bu işlem geri alınamaz. Devam edilsin mi?', 'woo-gib-efatura' ),
-				'confirmResetFiles' => __( 'Kayıtlı fatura dosyaları da silinsin mi? "Tamam" = dosyalar da silinsin, "İptal" = sadece kayıtlar sıfırlansın.', 'woo-gib-efatura' ),
-				'genericError'      => __( 'Bir hata oluştu, lütfen tekrar deneyin.', 'woo-gib-efatura' ),
+				'confirmReset'      => __( 'Eklenti tüm ayarları ve fatura kayıtlarını sıfırlayacak. Bu işlem geri alınamaz. Devam edilsin mi?', 'gib-efatura-for-woocommerce' ),
+				'confirmResetFiles' => __( 'Kayıtlı fatura dosyaları da silinsin mi? "Tamam" = dosyalar da silinsin, "İptal" = sadece kayıtlar sıfırlansın.', 'gib-efatura-for-woocommerce' ),
+				'genericError'      => __( 'Bir hata oluştu, lütfen tekrar deneyin.', 'gib-efatura-for-woocommerce' ),
 			],
 		] );
 	}
 
 	public static function handle_save(): void {
 		if ( ! current_user_can( self::CAPABILITY ) ) {
-			wp_die( esc_html__( 'Bu işlem için yetkiniz yok.', 'woo-gib-efatura' ) );
+			wp_die( esc_html__( 'Bu işlem için yetkiniz yok.', 'gib-efatura-for-woocommerce' ) );
 		}
 		check_admin_referer( 'wgf_save_settings' );
 

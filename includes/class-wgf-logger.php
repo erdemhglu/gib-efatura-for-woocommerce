@@ -3,11 +3,11 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * WooCommerce loglama sistemine ince bir sarmalayıcı.
- * Log kayıtları: WooCommerce > Durum > Loglar altında "woo-gib-efatura" kaynağıyla görünür.
+ * Log kayıtları: WooCommerce > Durum > Loglar altında "gib-efatura-for-woocommerce" kaynağıyla görünür.
  */
 class WGF_Logger {
 
-	private const SOURCE = 'woo-gib-efatura';
+	private const SOURCE = 'gib-efatura-for-woocommerce';
 
 	private static function logger(): \WC_Logger_Interface {
 		return wc_get_logger();
