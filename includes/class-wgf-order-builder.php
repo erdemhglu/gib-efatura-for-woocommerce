@@ -244,10 +244,12 @@ class WGF_Order_Builder {
 			return '';
 		}
 		return strtr( $template, [
-			'{siparis_no}'   => (string) $order->get_order_number(),
-			'{magaza_adi}'   => get_bloginfo( 'name' ),
-			'{tarih}'        => current_time( 'd/m/Y' ),
-			'{musteri_adi}'  => trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
+			'{siparis_no}'     => (string) $order->get_order_number(),
+			'{magaza_adi}'     => get_bloginfo( 'name' ),
+			'{tarih}'          => current_time( 'd/m/Y' ),
+			'{musteri_adi}'    => trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
+			'{odeme_sekli}'    => $order->get_payment_method_title() ?: '-',
+			'{gonderim_sekli}' => $order->get_shipping_method() ?: '-',
 		] );
 	}
 }

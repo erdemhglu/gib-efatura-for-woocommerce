@@ -63,7 +63,7 @@ defined( 'ABSPATH' ) || exit;
 					<textarea class="large-text" rows="3" id="wgf_default_note" name="default_note"><?php echo esc_textarea( $s['default_note'] ); ?></textarea>
 					<p class="description">
 						<?php esc_html_e( 'Kullanılabilir yer tutucular:', 'woo-gib-efatura' ); ?>
-						<code>{siparis_no}</code>, <code>{magaza_adi}</code>, <code>{tarih}</code>, <code>{musteri_adi}</code>
+						<code>{siparis_no}</code>, <code>{magaza_adi}</code>, <code>{tarih}</code>, <code>{musteri_adi}</code>, <code>{odeme_sekli}</code>, <code>{gonderim_sekli}</code>
 					</p>
 				</td>
 			</tr>
