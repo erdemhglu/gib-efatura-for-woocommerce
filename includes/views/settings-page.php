@@ -129,6 +129,27 @@ defined( 'ABSPATH' ) || exit;
 			</tr>
 		</table>
 
+		<h2 class="title"><?php esc_html_e( 'KDV Dahil Fiyat Yazan Kalemler (Ödeme Altyapısı Ücretleri vb.)', 'gib-efatura-for-woocommerce' ); ?></h2>
+		<p class="description">
+			<?php esc_html_e( 'Bazı ödeme altyapıları (taksit farkı, POS/kapıda ödeme ücreti vb.) siparişe KDV hesaplamadan, direkt KDV dahil tutarı yazan bir kalem ekler. Bu kalemlerin adını aşağıya (her satıra bir tane olacak şekilde, regex olarak) yazarsanız, fatura kesilirken bu kalemin tutarı KDV dahil kabul edilir; KDV hariç tutar geriye doğru hesaplanıp kalem "net tutar + %KDV" şeklinde faturaya yazılır. Örnek: kalem tutarı 69,53 TL ise ve oran %20 ise, faturada 57,94 + %20 KDV olarak görünür.', 'gib-efatura-for-woocommerce' ); ?>
+		</p>
+		<table class="form-table" role="presentation">
+			<tr>
+				<th scope="row"><label for="wgf_vat_included_item_patterns"><?php esc_html_e( 'Kalem Adı Regex Kalıpları', 'gib-efatura-for-woocommerce' ); ?></label></th>
+				<td>
+					<textarea class="large-text code" rows="4" id="wgf_vat_included_item_patterns" name="vat_included_item_patterns" placeholder="Taksit [Ff]ark[ıi]&#10;Kap[ıi]da [ÖO]deme.*[Üü]creti"><?php echo esc_textarea( $s['vat_included_item_patterns'] ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'Her satır ayrı bir regex kalıbıdır (delimiter yazmayın, örn: Taksit Farkı). Kalem adı bu kalıplardan biriyle eşleşirse KDV dahil kabul edilir. Büyük/küçük harf duyarsızdır.', 'gib-efatura-for-woocommerce' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="wgf_vat_included_rate"><?php esc_html_e( 'KDV Oranı (%)', 'gib-efatura-for-woocommerce' ); ?></label></th>
+				<td>
+					<input type="number" step="1" min="0" max="100" class="small-text" id="wgf_vat_included_rate" name="vat_included_rate" value="<?php echo esc_attr( $s['vat_included_rate'] ); ?>" />
+					<p class="description"><?php esc_html_e( 'Eşleşen kalemlerin KDV dahil tutarından KDV hariç tutarı geriye doğru hesaplamak için kullanılan oran.', 'gib-efatura-for-woocommerce' ); ?></p>
+				</td>
+			</tr>
+		</table>
+
 		<?php submit_button( __( 'Ayarları Kaydet', 'gib-efatura-for-woocommerce' ) ); ?>
 	</form>
 

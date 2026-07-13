@@ -206,9 +206,22 @@ class WGF_Order_Builder {
 			return null;
 		}
 
+		// Ödeme altyapısının KDV hesaplamadan eklediği kalemler (taksit farkı, POS ücreti vb.):
+		// kalem adı ayarlardaki regex kalıplarından biriyle eşleşiyorsa, mevcut tutar KDV dahil
+		// kabul edilip KDV hariç tutar geriye doğru hesaplanır.
+		$vat_included_rate = self::vat_included_rate_for_name( (string) $name );
+		if ( null !== $vat_included_rate ) {
+			$gross    = $total;
+			$subtotal = $vat_included_rate > 0 ? round( $gross / ( 1 + $vat_included_rate / 100 ), 4 ) : $gross;
+			$total    = $subtotal;
+			$tax      = round( $gross - $subtotal, 2 );
+		}
+
 		$unit_price = round( $subtotal / $qty, 4 );
 		$discount   = round( $subtotal - $total, 2 );
-		$kdv_rate   = self::nearest_kdv_rate( $subtotal > 0 ? ( $tax / $subtotal * 100 ) : 0.0 );
+		$kdv_rate   = null !== $vat_included_rate
+			? self::nearest_kdv_rate( $vat_included_rate )
+			: self::nearest_kdv_rate( $subtotal > 0 ? ( $tax / $subtotal * 100 ) : 0.0 );
 
 		$args = [
 			'malHizmet'  => $name ?: __( 'Ürün', 'gib-efatura-for-woocommerce' ),
@@ -227,6 +240,35 @@ class WGF_Order_Builder {
 		}
 
 		return new InvoiceItemModel( ...$args );
+	}
+
+	/**
+	 * Kalem adı, ayarlarda tanımlı "KDV dahil fiyat" regex kalıplarından biriyle
+	 * eşleşiyorsa uygulanacak KDV oranını, eşleşmiyorsa null döndürür.
+	 */
+	private static function vat_included_rate_for_name( string $name ): ?float {
+		if ( '' === trim( $name ) ) {
+			return null;
+		}
+
+		foreach ( self::vat_included_patterns() as $pattern ) {
+			$regex = '~' . $pattern . '~iu';
+			if ( false === @preg_match( $regex, $name ) ) {
+				continue; // Geçersiz regex, sessizce atla.
+			}
+			if ( 1 === preg_match( $regex, $name ) ) {
+				return max( 0.0, (float) WGF_Settings::get( 'vat_included_rate', 20 ) );
+			}
+		}
+
+		return null;
+	}
+
+	/** @return string[] */
+	private static function vat_included_patterns(): array {
+		$raw   = (string) WGF_Settings::get( 'vat_included_item_patterns', '' );
+		$lines = preg_split( '/\r\n|\r|\n/', $raw );
+		return array_values( array_filter( array_map( 'trim', $lines ) ) );
 	}
 
 	private static function nearest_kdv_rate( float $percent ): int {
