@@ -6,6 +6,8 @@ Bu eklenti, GİB portalı ile iletişim için [`mlevent/fatura`](https://github.
 
 > **Not:** Bu, bağımsız/gayriresmî bir üçüncü taraf eklentisidir. **Gelir İdaresi Başkanlığı (GİB)** veya **WooCommerce/Automattic** ile hiçbir resmî bağlantısı, ortaklığı ya da onayı yoktur. "GİB", "e-Fatura", "e-Arşiv" ve "WooCommerce" adları ilgili kurum/şirketlerin kendi marka ve unvanlarıdır.
 
+> Bu eklenti resmi/mali veri oluşturur. Kullanımından doğabilecek sorumluluk kullanıcıya aittir; canlıya geçmeden önce test ortamında kapsamlı test yapmanız önerilir.
+
 **Geliştirici:** Erdem Hacisalihoglu — [github.com/erdemhglu/gib-efatura-for-woocommerce](https://github.com/erdemhglu/gib-efatura-for-woocommerce)
 
 ## Özellikler
