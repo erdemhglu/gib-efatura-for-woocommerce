@@ -45,7 +45,7 @@ Bu eklenti, GİB portalı ile iletişim için [`mlevent/fatura`](https://github.
 
    Bu komut `mlevent/fatura` kütüphanesini ve bağımlılıklarını (`guzzlehttp/guzzle`, `ramsey/uuid`, `kwn/number-to-words`) `vendor/` klasörüne indirir. `vendor/` klasörü oluştuktan sonra eklenti kalıcı olarak kendi kendine yeterlidir, bir daha Composer'a ihtiyaç duyulmaz.
 
-   Sunucuda hiç SSH/terminal erişiminiz yoksa: bu komutu kendi bilgisayarınızda (PHP 8.1+ ile) çalıştırıp oluşan `vendor/` klasörünü eklenti klasörünün içine FTP ile yükleyebilirsiniz.
+   Sunucuda hiç SSH/terminal erişiminiz yoksa: bu komutu kendi bilgisayarınızda (PHP 8.1+ ile) çalıştırıp oluşan `vendor/` klasörünü eklenti klasörünün içine FTP ile yükleyebilir veya [Releases](https://github.com/erdemhglu/woo-gib-efatura/releases) sayfasından eklentinin vendor dosyası eklenmiş halini indirebilirsiniz. Direkt kuruluma hazırdır.
 
 3. WordPress admin panelinden **Eklentiler** sayfasından "WooCommerce GİB e-Fatura" eklentisini etkinleştirin.
 4. **GİB e-Fatura > Ayarlar** sayfasından:
