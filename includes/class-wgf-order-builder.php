@@ -34,10 +34,14 @@ class WGF_Order_Builder {
 
 		$tax_office = self::resolve_field( $order, WGF_Settings::field_map( 'field_map_tax_office' ), '' );
 
+		$is_kurumsal = self::is_kurumsal( $tax_id, $company );
+
 		return [
-			'aliciAdi'        => $order->get_billing_first_name() ?: __( 'Müşteri', 'gib-efatura-for-woocommerce' ),
-			'aliciSoyadi'     => $order->get_billing_last_name() ?: '-',
-			'aliciUnvan'      => $company,
+			// GİB tarafı aliciUnvan ile aliciAdi/aliciSoyadi alanlarının birbirini dışlamasını bekler:
+			// kurumsal faturada (VKN + ünvan) ad/soyad boş, bireysel faturada (TCKN) ünvan boş olmalı.
+			'aliciAdi'        => $is_kurumsal ? '' : ( $order->get_billing_first_name() ?: __( 'Müşteri', 'gib-efatura-for-woocommerce' ) ),
+			'aliciSoyadi'     => $is_kurumsal ? '' : ( $order->get_billing_last_name() ?: '-' ),
+			'aliciUnvan'      => $is_kurumsal ? $company : '',
 			'vknTckn'         => $tax_id ?: '11111111111',
 			'vergiDairesi'    => $tax_office,
 			'adres'           => trim( $order->get_billing_address_1() ),
@@ -50,7 +54,7 @@ class WGF_Order_Builder {
 			'paraBirimi'      => $order->get_currency(),
 			'dovizKuru'       => 0,
 			'not'             => self::render_note( (string) WGF_Settings::get( 'default_note', '' ), $order ),
-			'faturaTipi'      => self::detect_invoice_type( $tax_id, $company ),
+			'faturaTipi'      => $is_kurumsal ? 'kurumsal' : 'bireysel',
 			'irsaliyeNumarasi' => '',
 			'irsaliyeTarihi'   => '',
 			// Fatura tarihi, siparişin verildiği tarihten farklı olabilir (ör. irsaliye bu ay
@@ -68,6 +72,13 @@ class WGF_Order_Builder {
 	 */
 	public static function build( \WC_Order $order, array $overrides = [], ?array $return_info = null ): InvoiceModel {
 		$data = array_merge( self::get_defaults( $order ), array_filter( $overrides, fn( $v ) => null !== $v && '' !== $v ) );
+
+		// GİB, aliciUnvan doluyken aliciAdi/aliciSoyadi alanlarının boş olmasını bekler (kurumsal fatura);
+		// admin panelden manuel düzenleme sonrası bu kural bozulmuş olabileceği için burada garanti altına alınır.
+		if ( '' !== trim( (string) $data['aliciUnvan'] ) ) {
+			$data['aliciAdi']    = '';
+			$data['aliciSoyadi'] = '';
+		}
 
 		$currency = Currency::tryFrom( strtoupper( (string) $data['paraBirimi'] ) ) ?? Currency::TRY;
 		$rate     = (float) ( $overrides['dovizKuru'] ?? $data['dovizKuru'] ?? 0 );
@@ -318,8 +329,8 @@ class WGF_Order_Builder {
 		return $fallback;
 	}
 
-	private static function detect_invoice_type( string $tax_id, string $company ): string {
-		return ( '' !== $company && 1 === preg_match( '/^\d{10}$/', $tax_id ) ) ? 'kurumsal' : 'bireysel';
+	private static function is_kurumsal( string $tax_id, string $company ): bool {
+		return '' !== $company && 1 === preg_match( '/^\d{10}$/', $tax_id );
 	}
 
 	private static function map_country( string $code ): string {

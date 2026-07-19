@@ -3,7 +3,7 @@
  * Plugin Name:       GİB e-Fatura for WooCommerce
  * Plugin URI:        https://github.com/erdemhglu/gib-efatura-for-woocommerce
  * Description:       WooCommerce siparişlerinden GİB e-Arşiv portalı üzerinden e-Fatura/e-Arşiv fatura kesme, e-posta ile gönderme, indirme/saklama ve mükerrer fatura engelleme eklentisi. mlevent/fatura kütüphanesini kullanır.
- * Version:           1.2.0
+ * Version:           1.2.1
  * Requires at least: 6.0
  * Requires PHP:      8.1
  * Author:            Erdem Hacisalihoglu
