@@ -11,6 +11,8 @@ class WGF_Ajax {
 			'wgf_create_invoice',
 			'wgf_start_sms',
 			'wgf_complete_sms',
+			'wgf_start_bulk_sms',
+			'wgf_complete_bulk_sms',
 			'wgf_delete_draft',
 			'wgf_add_irsaliye',
 			'wgf_send_email',
@@ -100,6 +102,51 @@ class WGF_Ajax {
 		} catch ( WGF_Exception $e ) {
 			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
+	}
+
+	public static function wgf_start_bulk_sms(): void {
+		self::check_permission();
+		$invoice_ids = self::read_invoice_ids();
+
+		try {
+			$result = WGF_Invoice_Service::start_bulk_signing( $invoice_ids );
+			wp_send_json_success( [
+				/* translators: %d: seçilen fatura sayısı */
+				'message' => sprintf( __( '%d fatura için SMS kodu telefonunuza gönderildi.', 'gib-efatura-for-woocommerce' ), $result['count'] ),
+				'data'    => $result,
+			] );
+		} catch ( WGF_Exception $e ) {
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
+		}
+	}
+
+	public static function wgf_complete_bulk_sms(): void {
+		self::check_permission();
+		$invoice_ids = self::read_invoice_ids();
+		$code        = sanitize_text_field( wp_unslash( $_POST['code'] ?? '' ) );
+
+		if ( '' === $code ) {
+			wp_send_json_error( [ 'message' => __( 'SMS kodu boş olamaz.', 'gib-efatura-for-woocommerce' ) ] );
+		}
+
+		try {
+			$result = WGF_Invoice_Service::complete_bulk_signing( $invoice_ids, $code );
+			wp_send_json_success( [
+				/* translators: %d: imzalanan fatura sayısı */
+				'message' => sprintf( __( '%d fatura başarıyla imzalandı.', 'gib-efatura-for-woocommerce' ), count( $result['signed'] ) ),
+				'data'    => $result,
+			] );
+		} catch ( WGF_Exception $e ) {
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
+		}
+	}
+
+	/** @return int[] */
+	private static function read_invoice_ids(): array {
+		if ( ! isset( $_POST['invoice_ids'] ) || ! is_array( $_POST['invoice_ids'] ) ) {
+			return [];
+		}
+		return array_map( 'absint', wp_unslash( $_POST['invoice_ids'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 	}
 
 	public static function wgf_delete_draft(): void {

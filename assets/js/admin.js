@@ -316,6 +316,92 @@
 	});
 
 	// -------------------------------------------------------------
+	// Faturalar listesi: toplu imzalama (taslak faturaları seçip tek SMS koduyla imzalama)
+	// -------------------------------------------------------------
+	$(document).on('click', '#doaction, #doaction2', function (e) {
+		var $select = $(this).siblings('select');
+		if ($select.val() !== 'wgf_bulk_sign') {
+			return;
+		}
+		e.preventDefault();
+
+		var ids = [];
+		$('input[name="invoice[]"]:checked').each(function () {
+			ids.push($(this).val());
+		});
+
+		if (!ids.length) {
+			window.alert(WGF.i18n.bulkSignNoneSelected);
+			return;
+		}
+
+		var $panel = $('#wgf-bulk-sign-panel');
+		$panel.data('invoice-ids', ids);
+		$panel.find('.wgf-bulk-sms-box').hide();
+		$panel.find('.wgf-bulk-sms-code').val('');
+		$panel.find('.wgf-message').hide();
+		$panel.find('.wgf-bulk-sign-count').text(
+			WGF.i18n.bulkSignSelectedCount.replace('%d', ids.length)
+		);
+		$panel.slideDown();
+		$('html, body').animate({ scrollTop: $panel.offset().top - 50 }, 300);
+	});
+
+	$(document).on('click', '#wgf-bulk-cancel', function () {
+		$('#wgf-bulk-sign-panel').slideUp();
+	});
+
+	$(document).on('click', '#wgf-bulk-start-sms', function () {
+		var $panel = $('#wgf-bulk-sign-panel');
+		var ids = $panel.data('invoice-ids') || [];
+
+		toggleSpinner($panel, true);
+		ajax('wgf_start_bulk_sms', { invoice_ids: ids })
+			.done(function (response) {
+				toggleSpinner($panel, false);
+				if (response.success) {
+					showMessage($panel, response.data.message, false);
+					$panel.find('.wgf-bulk-sms-box').slideDown();
+				} else {
+					showMessage($panel, (response.data && response.data.message) || WGF.i18n.genericError, true);
+				}
+			})
+			.fail(function () {
+				toggleSpinner($panel, false);
+				showMessage($panel, WGF.i18n.genericError, true);
+			});
+	});
+
+	$(document).on('click', '#wgf-bulk-complete-sms', function () {
+		var $panel = $('#wgf-bulk-sign-panel');
+		var ids = $panel.data('invoice-ids') || [];
+		var code = $panel.find('.wgf-bulk-sms-code').val();
+
+		if (!code) {
+			showMessage($panel, WGF.i18n.enterSmsCode, true);
+			return;
+		}
+
+		toggleSpinner($panel, true);
+		ajax('wgf_complete_bulk_sms', { invoice_ids: ids, code: code })
+			.done(function (response) {
+				toggleSpinner($panel, false);
+				if (response.success) {
+					showMessage($panel, response.data.message, false);
+					window.setTimeout(function () {
+						window.location.reload();
+					}, 1000);
+				} else {
+					showMessage($panel, (response.data && response.data.message) || WGF.i18n.genericError, true);
+				}
+			})
+			.fail(function () {
+				toggleSpinner($panel, false);
+				showMessage($panel, WGF.i18n.genericError, true);
+			});
+	});
+
+	// -------------------------------------------------------------
 	// Ayarlar sayfası: test kullanıcısı al
 	// -------------------------------------------------------------
 	$(document).on('click', '#wgf_fetch_test_creds', function () {

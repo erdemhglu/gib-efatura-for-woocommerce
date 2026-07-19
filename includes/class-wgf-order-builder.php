@@ -35,12 +35,14 @@ class WGF_Order_Builder {
 		$tax_office = self::resolve_field( $order, WGF_Settings::field_map( 'field_map_tax_office' ), '' );
 
 		$is_kurumsal = self::is_kurumsal( $tax_id, $company );
+		// Ad/Soyad yalnızca gerçek (10 haneli) VKN'li tüzel kişi faturasında boş bırakılır.
+		// Şahıs şirketleri kendi TC kimlik numarasını (11 hane) vergi no olarak kullanır ve GİB
+		// bu durumda ünvan doluysa bile Ad/Soyad'ı zorunlu tutar; ünvan yalnızca ek bilgi olur.
+		$is_tuzel_kisi = $is_kurumsal && 10 === strlen( $tax_id );
 
 		return [
-			// GİB tarafı aliciUnvan ile aliciAdi/aliciSoyadi alanlarının birbirini dışlamasını bekler:
-			// kurumsal faturada (VKN + ünvan) ad/soyad boş, bireysel faturada (TCKN) ünvan boş olmalı.
-			'aliciAdi'        => $is_kurumsal ? '' : ( $order->get_billing_first_name() ?: __( 'Müşteri', 'gib-efatura-for-woocommerce' ) ),
-			'aliciSoyadi'     => $is_kurumsal ? '' : ( $order->get_billing_last_name() ?: '-' ),
+			'aliciAdi'        => $is_tuzel_kisi ? '' : ( $order->get_billing_first_name() ?: __( 'Müşteri', 'gib-efatura-for-woocommerce' ) ),
+			'aliciSoyadi'     => $is_tuzel_kisi ? '' : ( $order->get_billing_last_name() ?: '-' ),
 			'aliciUnvan'      => $is_kurumsal ? $company : '',
 			'vknTckn'         => $tax_id ?: '11111111111',
 			'vergiDairesi'    => $tax_office,
@@ -73,9 +75,12 @@ class WGF_Order_Builder {
 	public static function build( \WC_Order $order, array $overrides = [], ?array $return_info = null ): InvoiceModel {
 		$data = array_merge( self::get_defaults( $order ), array_filter( $overrides, fn( $v ) => null !== $v && '' !== $v ) );
 
-		// GİB, aliciUnvan doluyken aliciAdi/aliciSoyadi alanlarının boş olmasını bekler (kurumsal fatura);
-		// admin panelden manuel düzenleme sonrası bu kural bozulmuş olabileceği için burada garanti altına alınır.
-		if ( '' !== trim( (string) $data['aliciUnvan'] ) ) {
+		// GİB, aliciUnvan doluyken aliciAdi/aliciSoyadi alanlarının boş olmasını yalnızca gerçek
+		// (10 haneli) VKN'li tüzel kişi faturasında bekler; admin panelden manuel düzenleme
+		// sonrası bu kural bozulmuş olabileceği için burada garanti altına alınır. 11 haneli
+		// TCKN'li (şahıs şirketi/gerçek kişi) faturalarda Ad/Soyad zorunlu olduğu için dokunulmaz.
+		$tax_id_digits = preg_replace( '/\D/', '', (string) $data['vknTckn'] );
+		if ( '' !== trim( (string) $data['aliciUnvan'] ) && 10 === strlen( (string) $tax_id_digits ) ) {
 			$data['aliciAdi']    = '';
 			$data['aliciSoyadi'] = '';
 		}
@@ -330,7 +335,9 @@ class WGF_Order_Builder {
 	}
 
 	private static function is_kurumsal( string $tax_id, string $company ): bool {
-		return '' !== $company && 1 === preg_match( '/^\d{10}$/', $tax_id );
+		// VKN (tüzel kişi) 10 hane, TCKN (şahıs şirketi vergi no olarak kendi TC kimlik
+		// numarasını kullanır) 11 hanedir; ünvan doluysa ikisi de kurumsal fatura sayılır.
+		return '' !== $company && 1 === preg_match( '/^\d{10,11}$/', $tax_id );
 	}
 
 	private static function map_country( string $code ): string {

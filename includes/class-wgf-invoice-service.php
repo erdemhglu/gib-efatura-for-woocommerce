@@ -228,8 +228,73 @@ class WGF_Invoice_Service {
 			throw new WGF_Exception( __( 'Önce SMS doğrulamasını başlatmalısınız.', 'gib-efatura-for-woocommerce' ) );
 		}
 
-		WGF_Gib_Service::complete_sms_verification( $code, $row['sms_oid'], $row['uuid'] );
+		WGF_Gib_Service::complete_sms_verification( $code, $row['sms_oid'], [ $row['uuid'] ] );
 
+		self::finalize_signed_invoice( $invoice_id, $row );
+
+		return WGF_Invoice_Repository::find( $invoice_id );
+	}
+
+	/**
+	 * Birden fazla taslak fatura için tek bir SMS doğrulaması başlatır (yalnızca canlı modda).
+	 * GİB tek bir OID/kodla birden fazla belgeyi imzalayabildiği için, seçilen tüm taslaklara
+	 * aynı OID kaydedilir; onay adımında bu ortak OID kullanılır.
+	 *
+	 * @param int[] $invoice_ids
+	 *
+	 * @return array{oid:string,count:int}
+	 * @throws WGF_Exception
+	 */
+	public static function start_bulk_signing( array $invoice_ids ): array {
+		$rows = self::require_draft_rows_for_signing( $invoice_ids );
+
+		$oid = WGF_Gib_Service::start_sms_verification();
+
+		foreach ( $rows as $row ) {
+			WGF_Invoice_Repository::update( (int) $row['id'], [ 'sms_oid' => $oid ] );
+		}
+
+		return [ 'oid' => $oid, 'count' => count( $rows ) ];
+	}
+
+	/**
+	 * Tek bir SMS koduyla, start_bulk_signing() ile OID'i başlatılmış birden fazla taslağı
+	 * tek seferde imzalar; her biri için tekli imzalamayla aynı sonrası adımları
+	 * (belge no tespiti, sipariş notu, dosya indirme, otomatik e-posta) uygular.
+	 *
+	 * @param int[] $invoice_ids
+	 *
+	 * @return array{signed:int[]}
+	 * @throws WGF_Exception
+	 */
+	public static function complete_bulk_signing( array $invoice_ids, string $code ): array {
+		$rows = self::require_draft_rows_for_signing( $invoice_ids );
+
+		$oid = (string) ( $rows[0]['sms_oid'] ?? '' );
+		if ( '' === $oid ) {
+			throw new WGF_Exception( __( 'Önce SMS doğrulamasını başlatmalısınız.', 'gib-efatura-for-woocommerce' ) );
+		}
+
+		$uuids = array_map( static fn( array $row ): string => $row['uuid'], $rows );
+
+		WGF_Gib_Service::complete_sms_verification( $code, $oid, $uuids );
+
+		$signed = [];
+		foreach ( $rows as $row ) {
+			$invoice_id = (int) $row['id'];
+			self::finalize_signed_invoice( $invoice_id, $row );
+			$signed[] = $invoice_id;
+		}
+
+		return [ 'signed' => $signed ];
+	}
+
+	/**
+	 * complete_signing() ve complete_bulk_signing() ortak son adımları: durumu imzalandı
+	 * yapar, belge no'yu tespit eder, sipariş notunu ekler, dosyayı indirir ve
+	 * ayarlara göre müşteriye e-posta gönderir.
+	 */
+	private static function finalize_signed_invoice( int $invoice_id, array $row ): void {
 		$belge_no = self::fetch_belge_no( $row['uuid'] );
 
 		WGF_Invoice_Repository::update( $invoice_id, [
@@ -264,8 +329,46 @@ class WGF_Invoice_Service {
 				WGF_Logger::error( 'Otomatik e-posta gönderilemedi: ' . $e->getMessage(), [ 'invoice_id' => $invoice_id ] );
 			}
 		}
+	}
 
-		return WGF_Invoice_Repository::find( $invoice_id );
+	/**
+	 * Toplu imzalama için verilen fatura ID'lerini doğrular: hepsi mevcut, taslak
+	 * durumunda ve canlı modda olmalı (test hesaplarında GİB SMS ile imzalamayı
+	 * desteklemiyor). Herhangi biri koşulu sağlamıyorsa tüm işlem iptal edilir.
+	 *
+	 * @param int[] $invoice_ids
+	 *
+	 * @return array[]
+	 * @throws WGF_Exception
+	 */
+	private static function require_draft_rows_for_signing( array $invoice_ids ): array {
+		$invoice_ids = array_values( array_unique( array_filter( array_map( 'intval', $invoice_ids ) ) ) );
+
+		if ( ! $invoice_ids ) {
+			throw new WGF_Exception( __( 'İmzalamak için en az bir taslak fatura seçmelisiniz.', 'gib-efatura-for-woocommerce' ) );
+		}
+
+		$rows = [];
+		foreach ( $invoice_ids as $invoice_id ) {
+			$row = self::require_row( $invoice_id );
+
+			if ( WGF_Invoice_Repository::STATUS_DRAFT !== $row['durum'] ) {
+				throw new WGF_Exception(
+					sprintf(
+						/* translators: %d: fatura ID */
+						__( 'Yalnızca taslak durumundaki faturalar imzalanabilir (#%d taslak değil).', 'gib-efatura-for-woocommerce' ),
+						$invoice_id
+					)
+				);
+			}
+			if ( 'test' === $row['mode'] ) {
+				throw new WGF_Exception( __( 'Test hesaplarında SMS ile imzalama yapılamaz (GİB kısıtlaması). Canlı API\'ye geçtikten sonra imzalayabilirsiniz.', 'gib-efatura-for-woocommerce' ) );
+			}
+
+			$rows[] = $row;
+		}
+
+		return $rows;
 	}
 
 	private static function fetch_belge_no( string $uuid ): ?string {

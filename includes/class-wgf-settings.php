@@ -121,9 +121,13 @@ class WGF_Settings {
 			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 			'nonce'   => wp_create_nonce( 'wgf_nonce' ),
 			'i18n'    => [
-				'confirmReset'      => __( 'Eklenti tüm ayarları ve fatura kayıtlarını sıfırlayacak. Bu işlem geri alınamaz. Devam edilsin mi?', 'gib-efatura-for-woocommerce' ),
-				'confirmResetFiles' => __( 'Kayıtlı fatura dosyaları da silinsin mi? "Tamam" = dosyalar da silinsin, "İptal" = sadece kayıtlar sıfırlansın.', 'gib-efatura-for-woocommerce' ),
-				'genericError'      => __( 'Bir hata oluştu, lütfen tekrar deneyin.', 'gib-efatura-for-woocommerce' ),
+				'confirmReset'         => __( 'Eklenti tüm ayarları ve fatura kayıtlarını sıfırlayacak. Bu işlem geri alınamaz. Devam edilsin mi?', 'gib-efatura-for-woocommerce' ),
+				'confirmResetFiles'    => __( 'Kayıtlı fatura dosyaları da silinsin mi? "Tamam" = dosyalar da silinsin, "İptal" = sadece kayıtlar sıfırlansın.', 'gib-efatura-for-woocommerce' ),
+				'genericError'         => __( 'Bir hata oluştu, lütfen tekrar deneyin.', 'gib-efatura-for-woocommerce' ),
+				'enterSmsCode'         => __( 'Telefonunuza gelen SMS kodunu girin:', 'gib-efatura-for-woocommerce' ),
+				'bulkSignNoneSelected' => __( 'Lütfen imzalamak için en az bir taslak fatura seçin.', 'gib-efatura-for-woocommerce' ),
+				/* translators: %d bir JS placeholder'ıdır, sayıya çevrilecektir */
+				'bulkSignSelectedCount' => __( '%d taslak fatura seçildi.', 'gib-efatura-for-woocommerce' ),
 			],
 		] );
 	}

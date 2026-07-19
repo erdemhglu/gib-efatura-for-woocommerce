@@ -38,6 +38,24 @@ class WGF_Admin_List extends \WP_List_Table {
 				<?php $table->views_list(); ?>
 				<?php $table->display(); ?>
 			</form>
+
+			<div id="wgf-bulk-sign-panel" class="wgf-metabox" style="display:none;margin-top:12px;padding:12px;background:#fff;border:1px solid #ccd0d4;max-width:460px;">
+				<p><strong><?php esc_html_e( 'Toplu İmzalama', 'gib-efatura-for-woocommerce' ); ?></strong></p>
+				<p class="description wgf-bulk-sign-count"></p>
+				<p>
+					<button type="button" class="button button-primary" id="wgf-bulk-start-sms"><?php esc_html_e( 'SMS Kodu Gönder', 'gib-efatura-for-woocommerce' ); ?></button>
+					<button type="button" class="button" id="wgf-bulk-cancel"><?php esc_html_e( 'Vazgeç', 'gib-efatura-for-woocommerce' ); ?></button>
+					<span class="spinner wgf-spinner"></span>
+				</p>
+				<div class="wgf-bulk-sms-box" style="display:none;">
+					<p>
+						<label><?php esc_html_e( 'SMS Kodu', 'gib-efatura-for-woocommerce' ); ?></label><br />
+						<input type="text" class="wgf-bulk-sms-code" />
+						<button type="button" class="button button-primary" id="wgf-bulk-complete-sms"><?php esc_html_e( 'Onayla ve İmzala', 'gib-efatura-for-woocommerce' ); ?></button>
+					</p>
+				</div>
+				<div class="wgf-message"></div>
+			</div>
 		</div>
 		<?php
 	}
@@ -66,8 +84,26 @@ class WGF_Admin_List extends \WP_List_Table {
 		echo '<ul class="subsubsub"><li>' . implode( ' | </li><li>', $links ) . '</li></ul>';
 	}
 
+	protected function get_bulk_actions(): array {
+		return [
+			'wgf_bulk_sign' => __( 'Seçilenleri İmzala (SMS ile)', 'gib-efatura-for-woocommerce' ),
+		];
+	}
+
+	/**
+	 * Yalnızca taslak durumundaki faturalar SMS ile imzalanabildiği için,
+	 * imzalanmış/silinmiş satırlarda seçim kutusu hiç gösterilmez.
+	 */
+	public function column_cb( $item ): string {
+		if ( WGF_Invoice_Repository::STATUS_DRAFT !== $item['durum'] ) {
+			return '';
+		}
+		return sprintf( '<input type="checkbox" name="invoice[]" value="%d" />', (int) $item['id'] );
+	}
+
 	public function get_columns(): array {
 		return [
+			'cb'          => '<input type="checkbox" />',
 			'order_id'    => __( 'Sipariş', 'gib-efatura-for-woocommerce' ),
 			'alici_ad'    => __( 'Müşteri', 'gib-efatura-for-woocommerce' ),
 			'fatura_tipi' => __( 'Tip', 'gib-efatura-for-woocommerce' ),

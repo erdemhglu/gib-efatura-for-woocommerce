@@ -116,14 +116,18 @@ class WGF_Gib_Service {
 	}
 
 	/**
-	 * SMS kodu ile belgeyi imzalar (resmi hâle getirir).
+	 * SMS kodu ile bir veya birden fazla belgeyi tek seferde imzalar (resmi hâle getirir).
+	 * GİB API'si tek bir SMS kodu/OID ile birden fazla ETTN'yi aynı anda imzalayabildiği
+	 * için toplu imzalama akışı da bu metodu (birden fazla uuid ile) kullanır.
+	 *
+	 * @param string[] $uuids
 	 *
 	 * @throws WGF_Exception
 	 */
-	public static function complete_sms_verification( string $code, string $oid, string $uuid ): bool {
+	public static function complete_sms_verification( string $code, string $oid, array $uuids ): bool {
 		$gib = self::client();
 		try {
-			$result = $gib->completeSmsVerification( $code, $oid, [ $uuid ] );
+			$result = $gib->completeSmsVerification( $code, $oid, $uuids );
 			if ( ! $result ) {
 				throw new WGF_Exception( __( 'SMS kodu doğrulanamadı. Kodu kontrol edip tekrar deneyin.', 'gib-efatura-for-woocommerce' ) );
 			}
