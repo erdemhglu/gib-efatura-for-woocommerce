@@ -127,6 +127,33 @@ defined( 'ABSPATH' ) || exit;
 				<th scope="row"><label for="wgf_map_district"><?php esc_html_e( 'İlçe/Semt alan anahtarları', 'gib-efatura-for-woocommerce' ); ?></label></th>
 				<td><input type="text" class="large-text" id="wgf_map_district" name="field_map_district" value="<?php echo esc_attr( $s['field_map_district'] ); ?>" /></td>
 			</tr>
+			<tr>
+				<th scope="row"><label for="wgf_map_city"><?php esc_html_e( 'Şehir alan anahtarları', 'gib-efatura-for-woocommerce' ); ?></label></th>
+				<td>
+					<input type="text" class="large-text" id="wgf_map_city" name="field_map_city" value="<?php echo esc_attr( $s['field_map_city'] ); ?>" />
+					<p class="description"><?php esc_html_e( 'Checkout\'unuzda şehir bilgisini WooCommerce\'in "İl/State" alanı yerine ayrı bir özel alana/eklentiye yazıyorsa buraya ekleyin. Burada bulunamazsa sırasıyla City alanı, sonra State (il/eyalet, plaka koduysa yukarıdaki ayarla il adına çevrilir) denenir.', 'gib-efatura-for-woocommerce' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Adres Satırı Eşlemesi', 'gib-efatura-for-woocommerce' ); ?></th>
+				<td>
+					<label>
+						<input type="checkbox" name="swap_address_lines" value="1" <?php checked( $s['swap_address_lines'] ); ?> />
+						<?php esc_html_e( 'Adres Satırı 1\'i Mahalle/Semt, Adres Satırı 2\'yi Cadde/Sokak/Bina adresi olarak kullan', 'gib-efatura-for-woocommerce' ); ?>
+					</label>
+					<p class="description"><?php esc_html_e( 'Checkout\'unuzda müşteriler mahalle bilgisini "Adres Satırı 1", detaylı adresi "Adres Satırı 2" alanına giriyorsa bunu işaretleyin (yukarıdaki İlçe/Semt alan anahtarları önce denenir, sadece boşsa bu sıralama kullanılır). İşaretli değilse standart WooCommerce sıralaması (Adres Satırı 1 = adres, Adres Satırı 2 = ek bilgi) kullanılır.', 'gib-efatura-for-woocommerce' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Şehir Plaka Kodu', 'gib-efatura-for-woocommerce' ); ?></th>
+				<td>
+					<label>
+						<input type="checkbox" name="convert_plate_code_to_city" value="1" <?php checked( $s['convert_plate_code_to_city'] ); ?> />
+						<?php esc_html_e( 'Şehir alanı (fatura/teslimat ili) "34" veya "TR34" gibi bir plaka koduysa, otomatik olarak il adına ("İstanbul") çevir', 'gib-efatura-for-woocommerce' ); ?>
+					</label>
+					<p class="description"><?php esc_html_e( 'Bazı checkout eklentileri şehir bilgisini WooCommerce\'in "state" (il/eyalet) alanına plaka kodu olarak kaydeder. Bu işaretliyken eklenti, il adı bulunamadığında bu değeri kontrol eder ve plaka koduysa 81 ilin adına çevirir.', 'gib-efatura-for-woocommerce' ); ?></p>
+				</td>
+			</tr>
 		</table>
 
 		<h2 class="title"><?php esc_html_e( 'KDV Dahil Fiyat Yazan Kalemler (Ödeme Altyapısı Ücretleri vb.)', 'gib-efatura-for-woocommerce' ); ?></h2>

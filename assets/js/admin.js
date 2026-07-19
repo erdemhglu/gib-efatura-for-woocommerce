@@ -320,7 +320,9 @@
 	// -------------------------------------------------------------
 	$(document).on('click', '#doaction, #doaction2', function (e) {
 		var $select = $(this).siblings('select');
-		if ($select.val() !== 'wgf_bulk_sign') {
+		var action = $select.val();
+
+		if ('wgf_bulk_sign' !== action && 'wgf_bulk_purge' !== action) {
 			return;
 		}
 		e.preventDefault();
@@ -331,7 +333,15 @@
 		});
 
 		if (!ids.length) {
-			window.alert(WGF.i18n.bulkSignNoneSelected);
+			window.alert('wgf_bulk_purge' === action ? WGF.i18n.bulkPurgeNoneSelected : WGF.i18n.bulkSignNoneSelected);
+			return;
+		}
+
+		if ('wgf_bulk_purge' === action) {
+			if (!window.confirm(WGF.i18n.confirmBulkPurge)) {
+				return;
+			}
+			bulkPurgeInvoices(ids);
 			return;
 		}
 
@@ -345,6 +355,45 @@
 		);
 		$panel.slideDown();
 		$('html, body').animate({ scrollTop: $panel.offset().top - 50 }, 300);
+	});
+
+	function bulkPurgeInvoices(ids) {
+		ajax('wgf_purge_invoices', { invoice_ids: ids })
+			.done(function (response) {
+				if (response.success) {
+					window.alert(response.data.message);
+					window.location.reload();
+				} else {
+					window.alert((response.data && response.data.message) || WGF.i18n.genericError);
+				}
+			})
+			.fail(function () {
+				window.alert(WGF.i18n.genericError);
+			});
+	}
+
+	// -------------------------------------------------------------
+	// Faturalar listesi: tek bir "silindi" kaydını kalıcı olarak sil
+	// -------------------------------------------------------------
+	$(document).on('click', '.wgf-row-purge', function (e) {
+		e.preventDefault();
+
+		if (!window.confirm(WGF.i18n.confirmPurge)) {
+			return;
+		}
+
+		var invoiceId = $(this).data('invoice-id');
+		ajax('wgf_purge_invoice', { invoice_id: invoiceId })
+			.done(function (response) {
+				if (response.success) {
+					window.location.reload();
+				} else {
+					window.alert((response.data && response.data.message) || WGF.i18n.genericError);
+				}
+			})
+			.fail(function () {
+				window.alert(WGF.i18n.genericError);
+			});
 	});
 
 	$(document).on('click', '#wgf-bulk-cancel', function () {

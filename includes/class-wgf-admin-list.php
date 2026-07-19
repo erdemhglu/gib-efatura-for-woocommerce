@@ -86,16 +86,17 @@ class WGF_Admin_List extends \WP_List_Table {
 
 	protected function get_bulk_actions(): array {
 		return [
-			'wgf_bulk_sign' => __( 'Seçilenleri İmzala (SMS ile)', 'gib-efatura-for-woocommerce' ),
+			'wgf_bulk_sign'  => __( 'Seçilenleri İmzala (SMS ile)', 'gib-efatura-for-woocommerce' ),
+			'wgf_bulk_purge' => __( 'Seçilenleri Kalıcı Olarak Sil', 'gib-efatura-for-woocommerce' ),
 		];
 	}
 
 	/**
-	 * Yalnızca taslak durumundaki faturalar SMS ile imzalanabildiği için,
-	 * imzalanmış/silinmiş satırlarda seçim kutusu hiç gösterilmez.
+	 * Seçim kutusu yalnızca üzerinde bir toplu işlem uygulanabilecek satırlarda gösterilir:
+	 * taslak (SMS ile imzalanabilir) veya silindi (kalıcı olarak silinebilir).
 	 */
 	public function column_cb( $item ): string {
-		if ( WGF_Invoice_Repository::STATUS_DRAFT !== $item['durum'] ) {
+		if ( ! in_array( $item['durum'], [ WGF_Invoice_Repository::STATUS_DRAFT, WGF_Invoice_Repository::STATUS_DELETED ], true ) ) {
 			return '';
 		}
 		return sprintf( '<input type="checkbox" name="invoice[]" value="%d" />', (int) $item['id'] );
@@ -211,6 +212,14 @@ class WGF_Admin_List extends \WP_List_Table {
 		$order = wc_get_order( (int) $item['order_id'] );
 		if ( $order ) {
 			$links[] = sprintf( '<a href="%s">%s</a>', esc_url( $order->get_edit_order_url() ), esc_html__( 'Siparişi Görüntüle', 'gib-efatura-for-woocommerce' ) );
+		}
+
+		if ( WGF_Invoice_Repository::STATUS_DELETED === $item['durum'] ) {
+			$links[] = sprintf(
+				'<a href="#" class="wgf-row-purge" data-invoice-id="%d" style="color:#a00;">%s</a>',
+				(int) $item['id'],
+				esc_html__( 'Kalıcı Olarak Sil', 'gib-efatura-for-woocommerce' )
+			);
 		}
 
 		return implode( ' | ', $links );

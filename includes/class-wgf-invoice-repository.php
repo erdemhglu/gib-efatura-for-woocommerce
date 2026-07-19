@@ -67,6 +67,20 @@ class WGF_Invoice_Repository {
 		] );
 	}
 
+	/**
+	 * Bir kaydı veritabanından kalıcı olarak siler. Güvenlik için WHERE koşuluna
+	 * durum = 'silindi' de eklenir; çağıran taraf zaten bunu doğrulasa da,
+	 * kazayla aktif bir kaydın silinmesine karşı DB katmanında da garanti sağlar.
+	 */
+	public static function delete_permanently( int $id ): bool {
+		global $wpdb;
+		$table = $wpdb->prefix . WGF_TABLE;
+
+		$result = $wpdb->delete( $table, [ 'id' => $id, 'durum' => self::STATUS_DELETED ] );
+
+		return false !== $result && $result > 0;
+	}
+
 	public static function find( int $id ): ?array {
 		global $wpdb;
 		$table = $wpdb->prefix . WGF_TABLE;

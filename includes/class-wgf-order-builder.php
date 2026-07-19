@@ -17,6 +17,31 @@ class WGF_Order_Builder {
 
 	private const ALLOWED_KDV_RATES = [ 0, 1, 8, 10, 18, 20 ];
 
+	/** Plaka kodu => il adı (81 il). */
+	private const PLATE_CODES = [
+		'01' => 'Adana', '02' => 'Adıyaman', '03' => 'Afyonkarahisar', '04' => 'Ağrı',
+		'05' => 'Amasya', '06' => 'Ankara', '07' => 'Antalya', '08' => 'Artvin',
+		'09' => 'Aydın', '10' => 'Balıkesir', '11' => 'Bilecik', '12' => 'Bingöl',
+		'13' => 'Bitlis', '14' => 'Bolu', '15' => 'Burdur', '16' => 'Bursa',
+		'17' => 'Çanakkale', '18' => 'Çankırı', '19' => 'Çorum', '20' => 'Denizli',
+		'21' => 'Diyarbakır', '22' => 'Edirne', '23' => 'Elazığ', '24' => 'Erzincan',
+		'25' => 'Erzurum', '26' => 'Eskişehir', '27' => 'Gaziantep', '28' => 'Giresun',
+		'29' => 'Gümüşhane', '30' => 'Hakkari', '31' => 'Hatay', '32' => 'Isparta',
+		'33' => 'Mersin', '34' => 'İstanbul', '35' => 'İzmir', '36' => 'Kars',
+		'37' => 'Kastamonu', '38' => 'Kayseri', '39' => 'Kırklareli', '40' => 'Kırşehir',
+		'41' => 'Kocaeli', '42' => 'Konya', '43' => 'Kütahya', '44' => 'Malatya',
+		'45' => 'Manisa', '46' => 'Kahramanmaraş', '47' => 'Mardin', '48' => 'Muğla',
+		'49' => 'Muş', '50' => 'Nevşehir', '51' => 'Niğde', '52' => 'Ordu',
+		'53' => 'Rize', '54' => 'Sakarya', '55' => 'Samsun', '56' => 'Siirt',
+		'57' => 'Sinop', '58' => 'Sivas', '59' => 'Tekirdağ', '60' => 'Tokat',
+		'61' => 'Trabzon', '62' => 'Tunceli', '63' => 'Şanlıurfa', '64' => 'Uşak',
+		'65' => 'Van', '66' => 'Yozgat', '67' => 'Zonguldak', '68' => 'Aksaray',
+		'69' => 'Bayburt', '70' => 'Karaman', '71' => 'Kırıkkale', '72' => 'Batman',
+		'73' => 'Şırnak', '74' => 'Bartın', '75' => 'Ardahan', '76' => 'Iğdır',
+		'77' => 'Yalova', '78' => 'Karabük', '79' => 'Kilis', '80' => 'Osmaniye',
+		'81' => 'Düzce',
+	];
+
 	/**
 	 * Fatura oluşturma öncesi, admin ekranında düzenlenebilir alanların
 	 * siparişten türetilmiş varsayılan değerlerini döndürür.
@@ -26,29 +51,38 @@ class WGF_Order_Builder {
 		$tax_id  = self::resolve_field( $order, WGF_Settings::field_map( 'field_map_tax_id' ), (string) WGF_Settings::get( 'default_tax_id', '11111111111' ) );
 		$tax_id  = preg_replace( '/\D/', '', $tax_id );
 
+		// Bazı checkout'larda "Adres Satırı 1" Mahalle/Semt bilgisini, "Adres Satırı 2" ise asıl
+		// cadde/sokak/bina adresini tutar (standart WC varsayımının tersi); hangisinin hangi
+		// anlama geldiği "Adres Satırı Eşlemesi" ayarından belirlenir.
+		$address_line_1 = trim( (string) $order->get_billing_address_1() );
+		$address_line_2 = trim( (string) $order->get_billing_address_2() );
+		$swap_lines     = (bool) WGF_Settings::get( 'swap_address_lines', true );
+		$mahalle_source = $swap_lines ? $address_line_1 : $address_line_2;
+		$adres_source   = $swap_lines ? $address_line_2 : $address_line_1;
+
 		$district = self::resolve_field(
 			$order,
 			WGF_Settings::field_map( 'field_map_district' ),
-			trim( (string) $order->get_billing_address_2() ) ?: (string) WGF_Settings::get( 'default_district', 'Merkez' )
+			$mahalle_source ?: (string) WGF_Settings::get( 'default_district', 'Merkez' )
 		);
 
 		$tax_office = self::resolve_field( $order, WGF_Settings::field_map( 'field_map_tax_office' ), '' );
 
-		$is_kurumsal = self::is_kurumsal( $tax_id, $company );
-		// Ad/Soyad yalnızca gerçek (10 haneli) VKN'li tüzel kişi faturasında boş bırakılır.
-		// Şahıs şirketleri kendi TC kimlik numarasını (11 hane) vergi no olarak kullanır ve GİB
-		// bu durumda ünvan doluysa bile Ad/Soyad'ı zorunlu tutar; ünvan yalnızca ek bilgi olur.
-		$is_tuzel_kisi = $is_kurumsal && 10 === strlen( $tax_id );
+		// Ünvan (ve dolayısıyla "kurumsal" fatura tipi) yalnızca gerçek 10 haneli VKN'li tüzel
+		// kişilerde kullanılır. Şahıs şirketleri kendi TC kimlik numarasını (11 hane) vergi no
+		// olarak kullanır; bu durumda GİB'e göre fatura her zaman "bireysel"dir: Ünvan yerine
+		// Ad/Soyad girilir, firma unvanı alanı boş bırakılır.
+		$is_tuzel_kisi = self::is_kurumsal( $tax_id, $company );
 
 		return [
 			'aliciAdi'        => $is_tuzel_kisi ? '' : ( $order->get_billing_first_name() ?: __( 'Müşteri', 'gib-efatura-for-woocommerce' ) ),
 			'aliciSoyadi'     => $is_tuzel_kisi ? '' : ( $order->get_billing_last_name() ?: '-' ),
-			'aliciUnvan'      => $is_kurumsal ? $company : '',
+			'aliciUnvan'      => $is_tuzel_kisi ? $company : '',
 			'vknTckn'         => $tax_id ?: '11111111111',
 			'vergiDairesi'    => $tax_office,
-			'adres'           => trim( $order->get_billing_address_1() ),
+			'adres'           => $adres_source ?: $mahalle_source,
 			'mahalleSemtIlce' => $district,
-			'sehir'           => $order->get_billing_city() ?: $order->get_billing_state(),
+			'sehir'           => self::resolve_city( $order ),
 			'ulke'            => self::map_country( $order->get_billing_country() ),
 			'postaKodu'       => $order->get_billing_postcode(),
 			'tel'             => $order->get_billing_phone(),
@@ -56,7 +90,7 @@ class WGF_Order_Builder {
 			'paraBirimi'      => $order->get_currency(),
 			'dovizKuru'       => 0,
 			'not'             => self::render_note( (string) WGF_Settings::get( 'default_note', '' ), $order ),
-			'faturaTipi'      => $is_kurumsal ? 'kurumsal' : 'bireysel',
+			'faturaTipi'      => $is_tuzel_kisi ? 'kurumsal' : 'bireysel',
 			'irsaliyeNumarasi' => '',
 			'irsaliyeTarihi'   => '',
 			// Fatura tarihi, siparişin verildiği tarihten farklı olabilir (ör. irsaliye bu ay
@@ -335,9 +369,45 @@ class WGF_Order_Builder {
 	}
 
 	private static function is_kurumsal( string $tax_id, string $company ): bool {
-		// VKN (tüzel kişi) 10 hane, TCKN (şahıs şirketi vergi no olarak kendi TC kimlik
-		// numarasını kullanır) 11 hanedir; ünvan doluysa ikisi de kurumsal fatura sayılır.
-		return '' !== $company && 1 === preg_match( '/^\d{10,11}$/', $tax_id );
+		// Yalnızca 10 haneli VKN gerçek bir tüzel kişiyi (şirketi) temsil eder. Şahıs şirketleri
+		// kendi 11 haneli TC kimlik numarasını vergi no olarak kullanır; bunlar GİB nezdinde
+		// her zaman gerçek kişi (bireysel) sayılır, Ünvan alanı kullanılmaz.
+		return '' !== $company && 1 === preg_match( '/^\d{10}$/', $tax_id );
+	}
+
+	/**
+	 * Şehir bilgisi önce ayarlardaki özel alan eşleştirmesinden (checkout'a farklı bir
+	 * eklentiyle eklenmiş şehir alanı varsa), sonra standart WooCommerce City alanından,
+	 * son olarak da State (il/eyalet) alanından okunur. Bazı checkout eklentileri şehir
+	 * bilgisini State alanına il adı yerine "34" ya da "TR34" gibi bir plaka koduyla
+	 * kaydeder; bu durumda (ayarlarda açıksa) plaka kodu gerçek il adına çevrilir.
+	 */
+	private static function resolve_city( \WC_Order $order ): string {
+		$raw = self::resolve_field(
+			$order,
+			WGF_Settings::field_map( 'field_map_city' ),
+			trim( (string) $order->get_billing_city() ) ?: trim( (string) $order->get_billing_state() )
+		);
+
+		if ( WGF_Settings::get( 'convert_plate_code_to_city', true ) ) {
+			$city = self::city_from_plate_code( $raw );
+			if ( null !== $city ) {
+				return $city;
+			}
+		}
+
+		return $raw;
+	}
+
+	private static function city_from_plate_code( string $value ): ?string {
+		$code = strtoupper( trim( $value ) );
+		$code = preg_replace( '/^TR/', '', $code );
+
+		if ( 1 !== preg_match( '/^\d{1,2}$/', (string) $code ) ) {
+			return null;
+		}
+
+		return self::PLATE_CODES[ str_pad( $code, 2, '0', STR_PAD_LEFT ) ] ?? null;
 	}
 
 	private static function map_country( string $code ): string {

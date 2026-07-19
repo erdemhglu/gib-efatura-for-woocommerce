@@ -498,6 +498,84 @@ class WGF_Invoice_Service {
 	}
 
 	/**
+	 * "Silindi" durumundaki bir fatura kaydını veritabanından kalıcı olarak siler.
+	 * Zaten GİB tarafında silinmiş taslaklar için kullanılır; imzalanmış (resmi)
+	 * faturalar mevzuat gereği hiçbir zaman kalıcı silinemez.
+	 *
+	 * @throws WGF_Exception
+	 */
+	public static function purge( int $invoice_id ): void {
+		$rows = self::require_deleted_rows( [ $invoice_id ] );
+		self::purge_row( $rows[0] );
+	}
+
+	/**
+	 * Birden fazla "silindi" durumundaki kaydı tek seferde kalıcı olarak siler.
+	 * Seçilenlerden biri bile "silindi" durumunda değilse tüm işlem iptal edilir.
+	 *
+	 * @param int[] $invoice_ids
+	 *
+	 * @return int[] Kalıcı olarak silinen fatura ID'leri.
+	 * @throws WGF_Exception
+	 */
+	public static function purge_many( array $invoice_ids ): array {
+		$rows = self::require_deleted_rows( $invoice_ids );
+
+		$purged = [];
+		foreach ( $rows as $row ) {
+			self::purge_row( $row );
+			$purged[] = (int) $row['id'];
+		}
+
+		return $purged;
+	}
+
+	private static function purge_row( array $row ): void {
+		$invoice_id = (int) $row['id'];
+
+		if ( ! empty( $row['dosya_yolu'] ) && file_exists( $row['dosya_yolu'] ) ) {
+			@unlink( $row['dosya_yolu'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		}
+
+		WGF_Invoice_Repository::delete_permanently( $invoice_id );
+
+		WGF_Logger::info( 'Fatura kaydı kalıcı olarak silindi', [ 'invoice_id' => $invoice_id, 'order_id' => $row['order_id'] ] );
+	}
+
+	/**
+	 * @param int[] $invoice_ids
+	 *
+	 * @return array[]
+	 * @throws WGF_Exception
+	 */
+	private static function require_deleted_rows( array $invoice_ids ): array {
+		$invoice_ids = array_values( array_unique( array_filter( array_map( 'intval', $invoice_ids ) ) ) );
+
+		if ( ! $invoice_ids ) {
+			throw new WGF_Exception( __( 'Kalıcı olarak silmek için en az bir kayıt seçmelisiniz.', 'gib-efatura-for-woocommerce' ) );
+		}
+
+		$rows = [];
+		foreach ( $invoice_ids as $invoice_id ) {
+			$row = self::require_row( $invoice_id );
+
+			if ( WGF_Invoice_Repository::STATUS_DELETED !== $row['durum'] ) {
+				throw new WGF_Exception(
+					sprintf(
+						/* translators: %d: fatura ID */
+						__( 'Yalnızca "silindi" durumundaki kayıtlar kalıcı olarak silinebilir (#%d silindi değil).', 'gib-efatura-for-woocommerce' ),
+						$invoice_id
+					)
+				);
+			}
+
+			$rows[] = $row;
+		}
+
+		return $rows;
+	}
+
+	/**
 	 * Faturayı müşteriye e-posta ile gönderir.
 	 *
 	 * @throws WGF_Exception

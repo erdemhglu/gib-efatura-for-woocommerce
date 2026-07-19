@@ -25,6 +25,9 @@ class WGF_Settings {
 			'field_map_tax_id'         => '_billing_tckn,_billing_vkn,_billing_tax_number,_billing_tc_no,billing_tckn,billing_vkn',
 			'field_map_tax_office'     => '_billing_tax_office,_billing_vergi_dairesi,billing_tax_office',
 			'field_map_district'       => '_billing_district,_billing_ilce,billing_district,billing_neighborhood',
+			'field_map_city'           => '_billing_city_name,_billing_il,billing_city_name,billing_il',
+			'swap_address_lines'       => true,
+			'convert_plate_code_to_city' => true,
 			'vat_included_item_patterns' => '',
 			'vat_included_rate'        => 20,
 			'auto_email'               => true,
@@ -128,6 +131,9 @@ class WGF_Settings {
 				'bulkSignNoneSelected' => __( 'Lütfen imzalamak için en az bir taslak fatura seçin.', 'gib-efatura-for-woocommerce' ),
 				/* translators: %d bir JS placeholder'ıdır, sayıya çevrilecektir */
 				'bulkSignSelectedCount' => __( '%d taslak fatura seçildi.', 'gib-efatura-for-woocommerce' ),
+				'bulkPurgeNoneSelected' => __( 'Lütfen kalıcı olarak silmek için en az bir "silindi" durumundaki kayıt seçin.', 'gib-efatura-for-woocommerce' ),
+				'confirmBulkPurge'      => __( 'Seçilen kayıtlar veritabanından kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam edilsin mi?', 'gib-efatura-for-woocommerce' ),
+				'confirmPurge'          => __( 'Bu fatura kaydı veritabanından kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam edilsin mi?', 'gib-efatura-for-woocommerce' ),
 			],
 		] );
 	}
@@ -152,6 +158,9 @@ class WGF_Settings {
 			'field_map_tax_id'         => sanitize_text_field( wp_unslash( $_POST['field_map_tax_id'] ?? '' ) ),
 			'field_map_tax_office'     => sanitize_text_field( wp_unslash( $_POST['field_map_tax_office'] ?? '' ) ),
 			'field_map_district'       => sanitize_text_field( wp_unslash( $_POST['field_map_district'] ?? '' ) ),
+			'field_map_city'           => sanitize_text_field( wp_unslash( $_POST['field_map_city'] ?? '' ) ),
+			'swap_address_lines'       => ! empty( $_POST['swap_address_lines'] ),
+			'convert_plate_code_to_city' => ! empty( $_POST['convert_plate_code_to_city'] ),
 			'vat_included_item_patterns' => sanitize_textarea_field( wp_unslash( $_POST['vat_included_item_patterns'] ?? '' ) ),
 			'vat_included_rate'        => max( 0, (float) ( $_POST['vat_included_rate'] ?? 20 ) ),
 			'auto_email'               => ! empty( $_POST['auto_email'] ),

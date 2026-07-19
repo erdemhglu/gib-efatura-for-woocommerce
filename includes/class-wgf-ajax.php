@@ -14,6 +14,8 @@ class WGF_Ajax {
 			'wgf_start_bulk_sms',
 			'wgf_complete_bulk_sms',
 			'wgf_delete_draft',
+			'wgf_purge_invoice',
+			'wgf_purge_invoices',
 			'wgf_add_irsaliye',
 			'wgf_send_email',
 			'wgf_fetch_test_credentials',
@@ -156,6 +158,33 @@ class WGF_Ajax {
 		try {
 			WGF_Invoice_Service::delete_draft( $invoice_id );
 			wp_send_json_success( [ 'message' => __( 'Taslak silindi.', 'gib-efatura-for-woocommerce' ) ] );
+		} catch ( WGF_Exception $e ) {
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
+		}
+	}
+
+	public static function wgf_purge_invoice(): void {
+		self::check_permission();
+		$invoice_id = absint( $_POST['invoice_id'] ?? 0 );
+
+		try {
+			WGF_Invoice_Service::purge( $invoice_id );
+			wp_send_json_success( [ 'message' => __( 'Fatura kaydı kalıcı olarak silindi.', 'gib-efatura-for-woocommerce' ) ] );
+		} catch ( WGF_Exception $e ) {
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
+		}
+	}
+
+	public static function wgf_purge_invoices(): void {
+		self::check_permission();
+		$invoice_ids = self::read_invoice_ids();
+
+		try {
+			$purged = WGF_Invoice_Service::purge_many( $invoice_ids );
+			wp_send_json_success( [
+				/* translators: %d: kalıcı olarak silinen fatura sayısı */
+				'message' => sprintf( __( '%d fatura kaydı kalıcı olarak silindi.', 'gib-efatura-for-woocommerce' ), count( $purged ) ),
+			] );
 		} catch ( WGF_Exception $e ) {
 			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
